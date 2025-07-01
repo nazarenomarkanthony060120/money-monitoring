@@ -28,8 +28,8 @@ You need to set up OAuth applications for each provider and update the client ID
 4. Go to Credentials → Create Credentials → OAuth 2.0 Client IDs
 5. Set application type to "Web application"
 6. Add authorized redirect URIs:
-   - `https://auth.expo.io/@your-username/frontends`
-   - `frontends://auth/google`
+   - `https://auth.expo.io/@your-username/frontend`
+   - `frontend://auth/google`
 7. Copy the Client ID and update `GOOGLE_CLIENT_ID` in the auth service
 
 #### Facebook OAuth
@@ -38,8 +38,8 @@ You need to set up OAuth applications for each provider and update the client ID
 2. Create a new app
 3. Add Facebook Login product
 4. Configure OAuth redirect URIs:
-   - `https://auth.expo.io/@your-username/frontends`
-   - `frontends://auth/facebook`
+   - `https://auth.expo.io/@your-username/frontend`
+   - `frontend://auth/facebook`
 5. Copy the App ID and update `FACEBOOK_CLIENT_ID` in the auth service
 
 #### Discord OAuth
@@ -48,8 +48,8 @@ You need to set up OAuth applications for each provider and update the client ID
 2. Create a new application
 3. Go to OAuth2 settings
 4. Add redirect URIs:
-   - `https://auth.expo.io/@your-username/frontends`
-   - `frontends://auth/discord`
+   - `https://auth.expo.io/@your-username/frontend`
+   - `frontend://auth/discord`
 5. Copy the Client ID and update `DISCORD_CLIENT_ID` in the auth service
 
 ### 2. Update Configuration
@@ -57,9 +57,9 @@ You need to set up OAuth applications for each provider and update the client ID
 Replace the placeholder client IDs in `src/services/authService.ts`:
 
 ```typescript
-const GOOGLE_CLIENT_ID = "your-google-client-id";
-const FACEBOOK_CLIENT_ID = "your-facebook-client-id";
-const DISCORD_CLIENT_ID = "your-discord-client-id";
+const GOOGLE_CLIENT_ID = 'your-google-client-id'
+const FACEBOOK_CLIENT_ID = 'your-facebook-client-id'
+const DISCORD_CLIENT_ID = 'your-discord-client-id'
 ```
 
 ### 3. Backend Integration
@@ -76,9 +76,9 @@ The current implementation uses mock responses. To integrate with your backend:
 For production, move the client IDs to environment variables:
 
 ```typescript
-const GOOGLE_CLIENT_ID = process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID;
-const FACEBOOK_CLIENT_ID = process.env.EXPO_PUBLIC_FACEBOOK_CLIENT_ID;
-const DISCORD_CLIENT_ID = process.env.EXPO_PUBLIC_DISCORD_CLIENT_ID;
+const GOOGLE_CLIENT_ID = process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID
+const FACEBOOK_CLIENT_ID = process.env.EXPO_PUBLIC_FACEBOOK_CLIENT_ID
+const DISCORD_CLIENT_ID = process.env.EXPO_PUBLIC_DISCORD_CLIENT_ID
 ```
 
 ## Project Structure
