@@ -1,8 +1,9 @@
+import 'react-native-gesture-handler'
+import '../global.css'
 import React from 'react'
 import { Stack } from 'expo-router'
 import { StatusBar } from 'expo-status-bar'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import '../global.css'
 import { GestureHandlerRootView } from 'react-native-gesture-handler'
 
 // Create a client
