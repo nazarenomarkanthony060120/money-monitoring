@@ -23,7 +23,8 @@ import {
   validateUserRegistration,
   validatePasswordResetRequest,
   validatePasswordReset,
-  validateUserProfileUpdate
+  validateUserProfileUpdate,
+  validateDiscordAuth
 } from '../validations/userValidation';
 import { verifyToken } from '../middleware/auth';
 
@@ -33,7 +34,7 @@ const router = Router();
 router.post('/login', validateUserLogin, login);
 router.post('/login/google', loginWithGoogle);
 router.post('/login/facebook', loginWithFacebook);
-router.post('/login/discord', loginWithDiscord);
+router.post('/login/discord', validateDiscordAuth, loginWithDiscord);
 router.post('/register', validateUserRegistration, register);
 router.post('/logout', verifyToken, logout);
 router.post('/revoke', verifyToken, revokeAccess);

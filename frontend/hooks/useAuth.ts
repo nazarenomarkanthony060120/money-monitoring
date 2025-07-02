@@ -32,7 +32,7 @@ export const useAuth = () => {
     setError(null);
   };
 
-  const login = (user: User, token: string) => {
+  const setAuthData = (user: User, token: string) => {
     setAuthState(prev => ({
       ...prev,
       user,
@@ -40,7 +40,10 @@ export const useAuth = () => {
       isLoading: false,
       error: null,
     }));
+  };
 
+  const login = (user: User, token: string) => {
+    setAuthData(user, token);
     // Navigate to dashboard after successful login
     router.replace('/(tabs)/home');
   };
@@ -64,7 +67,7 @@ export const useAuth = () => {
 
       try {
         const response = await authService.loginWithProvider(provider);
-        login(response.user, response.token);
+        setAuthData(response.user, response.token);
         return response;
       } catch (error) {
         const errorMessage = error instanceof Error ? error.message : 'Authentication failed';
@@ -92,7 +95,9 @@ export const useAuth = () => {
     token: authState.token,
     isLoading: authState.isLoading || loginMutation.isPending,
     error: authState.error,
+    isAuthenticated: !!authState.user && !!authState.token,
     login: handleLogin,
+    loginWithTokenAndUser: login,
     logout,
     clearError,
   };

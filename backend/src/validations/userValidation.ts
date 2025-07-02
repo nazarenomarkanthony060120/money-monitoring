@@ -56,6 +56,19 @@ export const validateOAuthLogin = [
   validate
 ];
 
+// Discord OAuth validation
+export const validateDiscordAuth = [
+  body('code')
+    .notEmpty()
+    .withMessage('Authorization code is required'),
+
+  body('redirectUri')
+    .isURL()
+    .withMessage('Redirect URI must be a valid URL'),
+
+  validate
+];
+
 // Password reset request validation
 export const validatePasswordResetRequest = [
   body('email')

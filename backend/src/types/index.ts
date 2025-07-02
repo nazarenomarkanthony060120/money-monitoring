@@ -254,6 +254,24 @@ export interface IFacebookUserInfo {
   };
 }
 
+export interface IDiscordUserInfo {
+  id: string;
+  username: string;
+  discriminator: string;
+  avatar?: string;
+  email?: string;
+  verified?: boolean;
+  locale?: string;
+  mfa_enabled?: boolean;
+  premium_type?: number;
+  public_flags?: number;
+}
+
+export interface IDiscordAuthRequest {
+  code: string;
+  state?: string;
+}
+
 // Statistics Types
 export interface ITransactionStats {
   totalIncome: number;

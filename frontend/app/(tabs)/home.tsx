@@ -41,11 +41,7 @@ export default function HomeScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-gray-50">
-      <StatusBar
-        barStyle="light-content"
-        backgroundColor="transparent"
-        translucent
-      />
+      <StatusBar barStyle="default" backgroundColor="transparent" translucent />
 
       <DashboardHeader user={user} onLogout={handleLogout} />
 

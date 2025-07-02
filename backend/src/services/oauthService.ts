@@ -1,7 +1,6 @@
 import { ApiError } from '../utils/errors';
 import { env } from '../config/environment';
 import { authService } from './authService';
-import jwt from 'jsonwebtoken';
 
 interface OAuthUrlResponse {
   success: boolean;
@@ -30,8 +29,6 @@ export class OAuthService {
   private discordClientSecret: string;
   private googleClientId: string;
   private baseUrl: string;
-  private jwtSecret: string;
-
   constructor() {
     this.facebookClientId = env.FACEBOOK_APP_ID;
     this.facebookClientSecret = env.FACEBOOK_APP_SECRET;
@@ -39,7 +36,6 @@ export class OAuthService {
     this.discordClientSecret = env.DISCORD_CLIENT_SECRET;
     this.googleClientId = env.GOOGLE_CLIENT_ID;
     this.baseUrl = env.BACKEND_BASE_URL || 'http://localhost:5000';
-    this.jwtSecret = env.JWT_SECRET;
   }
 
   // Facebook OAuth
@@ -108,7 +104,7 @@ export class OAuthService {
   // Discord OAuth
   async getDiscordAuthUrl(): Promise<OAuthUrlResponse> {
     const redirectUri = `${this.baseUrl}/api/auth/discord/callback`;
-    const authUrl = `https://discord.com/api/oauth2/authorize?client_id=${this.discordClientId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=identify%20email&response_type=code`;
+    const authUrl = authService.generateDiscordAuthUrl(redirectUri);
 
     return {
       success: true,
@@ -120,48 +116,10 @@ export class OAuthService {
 
   async handleDiscordCallback(code: string): Promise<OAuthCallbackResult> {
     try {
-      // Exchange code for access token
-      const tokenResponse = await fetch('https://discord.com/api/oauth2/token', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-        },
-        body: new URLSearchParams({
-          client_id: this.discordClientId,
-          client_secret: this.discordClientSecret,
-          redirect_uri: `${this.baseUrl}/api/auth/discord/callback`,
-          code: code,
-          grant_type: 'authorization_code',
-        }),
-      });
+      const redirectUri = `${this.baseUrl}/api/auth/discord/callback`;
 
-      if (!tokenResponse.ok) {
-        throw new ApiError(401, 'Failed to exchange code for access token');
-      }
-
-      const tokenData = await tokenResponse.json() as any;
-      const accessToken = tokenData.access_token;
-
-      // Get user profile from Discord
-      const profileResponse = await fetch('https://discord.com/api/users/@me', {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      });
-
-      if (!profileResponse.ok) {
-        throw new ApiError(401, 'Failed to get user profile from Discord');
-      }
-
-      const profile = await profileResponse.json() as any;
-
-      // Authenticate user using auth service
-      const authResult = await authService.loginWithDiscord(accessToken, {
-        id: profile.id,
-        email: profile.email,
-        name: profile.username,
-        photo: profile.avatar ? `https://cdn.discordapp.com/avatars/${profile.id}/${profile.avatar}.png` : undefined,
-      });
+      // Use the new Discord authentication method from authService
+      const authResult = await authService.loginWithDiscord(code, redirectUri);
 
       return {
         token: authResult.token,
@@ -200,7 +158,7 @@ export class OAuthService {
   }
 
   // Handle Google OAuth callback
-  async handleGoogleCallback(code: string): Promise<{ user: any; token: string }> {
+  async handleGoogleCallback(code: string): Promise<OAuthCallbackResult> {
     try {
       // Exchange code for tokens
       const tokenResponse = await fetch('https://oauth2.googleapis.com/token', {
@@ -233,23 +191,22 @@ export class OAuthService {
 
       const profile: any = await profileResponse.json();
 
-      // Create user data
-      const userData = {
-        googleId: profile.id,
-        email: profile.email,
-        name: profile.name,
-        avatar: profile.picture,
-        provider: 'google',
+      // Use authService to handle Google authentication
+      const authResult = await authService.loginWithGoogle({
+        idToken: tokens.id_token || '',
+        accessToken: tokens.access_token,
+        user: {
+          id: profile.id,
+          email: profile.email,
+          name: profile.name,
+          photo: profile.picture,
+        }
+      });
+
+      return {
+        token: authResult.token,
+        user: authResult.user,
       };
-
-      // Generate JWT token
-      const token = jwt.sign(
-        { userId: profile.id, email: profile.email },
-        this.jwtSecret,
-        { expiresIn: '7d' }
-      );
-
-      return { user: userData, token };
     } catch (error) {
       console.error('Google OAuth callback error:', error);
       throw new Error('Google authentication failed');

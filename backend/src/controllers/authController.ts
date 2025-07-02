@@ -1,4 +1,4 @@
-import { Request, Response } from 'express';
+import { Request, Response, NextFunction } from 'express';
 import { authService } from '../services/authService';
 import { oauthService } from '../services/oauthService';
 import { asyncHandler, formatSuccessResponse } from '../utils/errors';
@@ -140,18 +140,18 @@ export const loginWithFacebook = asyncHandler(async (req: Request, res: Response
 });
 
 /**
- * @desc    Authenticate user with Discord
+ * @desc    Authenticate user with Discord (OAuth2 code exchange)
  * @route   POST /api/login/discord
  * @access  Public
  */
 export const loginWithDiscord = asyncHandler(async (req: Request, res: Response): Promise<void> => {
-  const { accessToken, user: discordUser } = req.body;
+  const { code, redirectUri } = req.body;
 
-  if (!accessToken || !discordUser) {
-    throw new Error('Discord access token and user data are required');
+  if (!code || !redirectUri) {
+    throw new Error('Authorization code and redirect URI are required');
   }
 
-  const result = await authService.loginWithDiscord(accessToken, discordUser);
+  const result = await authService.loginWithDiscord(code, redirectUri);
 
   res.status(200).json(formatSuccessResponse(result, 'Discord authentication successful'));
 });
@@ -219,34 +219,62 @@ export const facebookCallback = asyncHandler(async (req: Request, res: Response)
  * @route   GET /api/auth/discord/url
  * @access  Public
  */
-export const getDiscordAuthUrl = asyncHandler(async (req: Request, res: Response): Promise<void> => {
-  const result = await oauthService.getDiscordAuthUrl();
+export const getDiscordAuthUrl = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const { redirectUri, state } = req.query as { redirectUri?: string; state?: string };
 
-  res.status(200).json(formatSuccessResponse(result, 'Discord authorization URL generated'));
-});
+    if (!redirectUri) {
+      res.status(400).json({
+        success: false,
+        message: 'Redirect URI is required',
+      });
+      return;
+    }
+
+    const authUrl = authService.generateDiscordAuthUrl(redirectUri, state);
+
+    res.status(200).json({
+      success: true,
+      message: 'Discord authorization URL generated successfully',
+      data: {
+        authUrl,
+        clientId: env.DISCORD_CLIENT_ID,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
 
 /**
  * @desc    Discord OAuth callback
  * @route   GET /api/auth/discord/callback
  * @access  Public
  */
-export const discordCallback = asyncHandler(async (req: Request, res: Response): Promise<void> => {
-  const { code } = req.query;
-
-  if (!code) {
-    throw new Error('Authorization code is required');
-  }
-
+export const discordCallback = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const result = await oauthService.handleDiscordCallback(code as string);
-    const frontendUrl = oauthService.generateFrontendRedirect(result);
-    res.redirect(frontendUrl);
+    const { code, state } = req.query as { code?: string; state?: string };
+
+    if (!code) {
+      console.error('Discord callback missing authorization code');
+      const errorUrl = oauthService.generateErrorRedirect('discord_auth_failed');
+      res.redirect(errorUrl);
+      return;
+    }
+
+    try {
+      const result = await oauthService.handleDiscordCallback(code);
+      const frontendUrl = oauthService.generateFrontendRedirect(result);
+      res.redirect(frontendUrl);
+    } catch (error) {
+      console.error('Discord OAuth callback error:', error);
+      const errorUrl = oauthService.generateErrorRedirect('discord_auth_failed');
+      res.redirect(errorUrl);
+    }
   } catch (error) {
-    console.error('Discord OAuth error:', error);
-    const errorUrl = oauthService.generateErrorRedirect('discord_auth_failed');
-    res.redirect(errorUrl);
+    next(error);
   }
-});
+};
 
 /**
  * @desc    Get Google OAuth authorization URL

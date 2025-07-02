@@ -261,33 +261,80 @@ class AuthService {
     }
   }
 
-  // Discord Authentication
-  async loginWithDiscord(accessToken: string, userData: any): Promise<AuthResponse> {
+  // Discord OAuth2 Authentication
+  async loginWithDiscord(code: string, redirectUri: string): Promise<AuthResponse> {
     try {
-      // Verify Discord access token
-      const discordResponse = await fetch('https://discord.com/api/users/@me', {
+      // Step 1: Exchange authorization code for access token
+      const tokenResponse = await fetch('https://discord.com/api/oauth2/token', {
+        method: 'POST',
         headers: {
-          Authorization: `Bearer ${accessToken}`,
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: new URLSearchParams({
+          client_id: env.DISCORD_CLIENT_ID,
+          client_secret: env.DISCORD_CLIENT_SECRET,
+          grant_type: 'authorization_code',
+          code: code,
+          redirect_uri: redirectUri,
+        }),
+      });
+
+      if (!tokenResponse.ok) {
+        const errorData = await tokenResponse.json();
+        console.error('Discord token exchange error:', errorData);
+        throw new ApiError(401, 'Failed to exchange Discord authorization code');
+      }
+
+      const tokenData = await tokenResponse.json() as {
+        access_token: string;
+        token_type: string;
+        expires_in: number;
+        refresh_token: string;
+        scope: string;
+      };
+
+      // Step 2: Use access token to get user information
+      const userResponse = await fetch('https://discord.com/api/users/@me', {
+        headers: {
+          Authorization: `Bearer ${tokenData.access_token}`,
         },
       });
 
-      if (!discordResponse.ok) {
-        throw new ApiError(401, 'Invalid Discord access token');
+      if (!userResponse.ok) {
+        const errorData = await userResponse.json();
+        console.error('Discord user info error:', errorData);
+        throw new ApiError(401, 'Failed to fetch Discord user information');
       }
 
-      const discordProfile = await discordResponse.json() as any;
+      const discordUser = await userResponse.json() as {
+        id: string;
+        username: string;
+        discriminator: string;
+        avatar?: string;
+        email?: string;
+        verified?: boolean;
+        locale?: string;
+        mfa_enabled?: boolean;
+        premium_type?: number;
+        public_flags?: number;
+      };
 
-      // Verify that the token belongs to the expected user
-      if (discordProfile.email !== userData.email) {
-        throw new ApiError(401, 'Email mismatch in Discord token');
+      // Check if user has email (required for our app)
+      if (!discordUser.email) {
+        throw new ApiError(400, 'Discord account must have a verified email address');
       }
+
+      // Generate avatar URL if avatar exists
+      const avatarUrl = discordUser.avatar
+        ? `https://cdn.discordapp.com/avatars/${discordUser.id}/${discordUser.avatar}.png`
+        : `https://cdn.discordapp.com/embed/avatars/${parseInt(discordUser.discriminator) % 5}.png`;
 
       // Find or create user
       const user = await User.findOrCreateOAuthUser({
-        id: userData.id,
-        email: userData.email,
-        name: userData.name,
-        picture: userData.photo,
+        id: discordUser.id,
+        email: discordUser.email,
+        name: `${discordUser.username}#${discordUser.discriminator}`,
+        picture: avatarUrl,
         provider: 'discord'
       });
 
@@ -320,6 +367,22 @@ class AuthService {
       }
       throw new ApiError(500, 'Discord authentication failed');
     }
+  }
+
+  // Generate Discord OAuth2 authorization URL
+  generateDiscordAuthUrl(redirectUri: string, state?: string): string {
+    const params = new URLSearchParams({
+      client_id: env.DISCORD_CLIENT_ID,
+      redirect_uri: redirectUri,
+      response_type: 'code',
+      scope: 'identify email',
+    });
+
+    if (state) {
+      params.append('state', state);
+    }
+
+    return `https://discord.com/api/oauth2/authorize?${params.toString()}`;
   }
 
   // Password Reset
