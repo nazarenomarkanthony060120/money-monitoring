@@ -1,4 +1,5 @@
 import * as WebBrowser from 'expo-web-browser';
+import * as AuthSession from 'expo-auth-session';
 import { AuthProvider, User, LoginResponse } from '../types/auth';
 import Constants from 'expo-constants';
 import * as Linking from 'expo-linking';
@@ -96,28 +97,8 @@ class AuthService {
     console.log('OAuth successful:', result);
   }
 
-  // Google Sign-In (fallback to web-based OAuth if native module not available)
+  // Google Sign-In using expo-web-browser (simpler approach)
   async loginWithGoogle(): Promise<LoginResponse> {
-    if (GoogleSignin) {
-      try {
-        await GoogleSignin.hasPlayServices();
-        const userInfo = await GoogleSignin.signIn();
-        const authData = this.prepareGoogleAuthData(userInfo);
-        return await this.sendToBackend('google', authData);
-      } catch (error: any) {
-        console.error('Google Sign-In Error:', error);
-        // Send error to Discord
-        this.sendErrorToDiscord('Google Native Authentication Error', error);
-        throw this.handleGoogleError(error);
-      }
-    } else {
-      // Fallback to web-based OAuth
-      return this.loginWithGoogleWeb();
-    }
-  }
-
-  // Web-based Google OAuth (for Expo Go)
-  private async loginWithGoogleWeb(): Promise<LoginResponse> {
     try {
       // Get OAuth URL from backend
       const response = await fetch(`${BACKEND_BASE_URL}/api/auth/google/url`);
@@ -127,8 +108,13 @@ class AuthService {
         throw new Error('Failed to get Google auth URL');
       }
 
-      // Open browser for OAuth with proper redirect URI
-      const redirectUri = `${BACKEND_BASE_URL}/api/auth/google/callback`;
+      // Create redirect URI
+      const redirectUri = AuthSession.makeRedirectUri({
+        scheme: 'moneymonitoring',
+        path: 'auth/callback'
+      });
+
+      // Use WebBrowser for OAuth (works reliably across all platforms)
       const result = await WebBrowser.openAuthSessionAsync(
         data.data.authUrl,
         redirectUri
@@ -155,45 +141,12 @@ class AuthService {
     } catch (error) {
       console.error('Frontend Google authentication error:', error);
       // Send error to Discord
-      this.sendErrorToDiscord('Google Web Authentication Error', error);
+      this.sendErrorToDiscord('Google Authentication Error', error);
       throw new Error('Google authentication failed');
     }
   }
 
-  private prepareGoogleAuthData(userInfo: any): any {
-    return {
-      idToken: (userInfo as any).idToken,
-      accessToken: (userInfo as any).accessToken,
-      user: {
-        id: (userInfo as any).user?.id,
-        email: (userInfo as any).user?.email,
-        name: (userInfo as any).user?.name,
-        photo: (userInfo as any).user?.photo,
-        provider: 'google',
-      },
-    };
-  }
-
-  private handleGoogleError(error: any): Error {
-    console.error('Google Sign-In Error:', error);
-
-    if (error.code && statusCodes) {
-      switch (error.code) {
-        case statusCodes.SIGN_IN_CANCELLED:
-          return new Error('Google sign-in was cancelled');
-        case statusCodes.PLAY_SERVICES_NOT_AVAILABLE:
-          return new Error('Google Play Services not available or outdated');
-        case statusCodes.SIGN_IN_REQUIRED:
-          return new Error('User needs to sign in again');
-        default:
-          return new Error('Google authentication failed');
-      }
-    }
-
-    return new Error('Google authentication failed');
-  }
-
-  // Facebook Sign-In (handled by backend)
+  // Facebook Sign-In using expo-web-browser
   async loginWithFacebook(): Promise<LoginResponse> {
     try {
       // Get OAuth URL from backend
@@ -204,14 +157,28 @@ class AuthService {
         throw new Error('Failed to get Facebook auth URL');
       }
 
-      // Open browser for OAuth
-      const result = await WebBrowser.openAuthSessionAsync(data.data.authUrl, 'moneymonitoring://');
+      // Create redirect URI
+      const redirectUri = AuthSession.makeRedirectUri({
+        scheme: 'moneymonitoring',
+        path: 'auth/callback'
+      });
+
+      // Use WebBrowser for OAuth
+      const result = await WebBrowser.openAuthSessionAsync(
+        data.data.authUrl,
+        redirectUri
+      );
 
       if (result.type === 'success') {
         // Parse the result URL to extract token and user data
         const url = new URL(result.url);
         const token = url.searchParams.get('token');
         const userParam = url.searchParams.get('user');
+        const error = url.searchParams.get('error');
+
+        if (error) {
+          throw new Error(`Facebook authentication failed: ${error}`);
+        }
 
         if (token && userParam) {
           const user = JSON.parse(decodeURIComponent(userParam));
@@ -219,26 +186,33 @@ class AuthService {
         }
       }
 
-      throw new Error('Facebook authentication failed');
+      throw new Error('Facebook authentication was cancelled or failed');
     } catch (error) {
       console.error('Facebook authentication error:', error);
+      // Send error to Discord
+      this.sendErrorToDiscord('Facebook Authentication Error', error);
       throw new Error('Facebook authentication failed');
     }
   }
 
-  // Discord Sign-In (handled by backend)
+  // Discord Sign-In using expo-web-browser
   async loginWithDiscord(): Promise<LoginResponse> {
     try {
-      // Get OAuth URL from backend with proper redirect URI
-      const redirectUri = `${BACKEND_BASE_URL}/api/auth/discord/callback`;
-      const response = await fetch(`${BACKEND_BASE_URL}/api/auth/discord/url?redirectUri=${encodeURIComponent(redirectUri)}`);
+      // Get OAuth URL from backend
+      const response = await fetch(`${BACKEND_BASE_URL}/api/auth/discord/url`);
       const data = await response.json();
 
       if (!data.success) {
         throw new Error('Failed to get Discord auth URL');
       }
 
-      // Open browser for OAuth
+      // Create redirect URI
+      const redirectUri = AuthSession.makeRedirectUri({
+        scheme: 'moneymonitoring',
+        path: 'auth/callback'
+      });
+
+      // Use WebBrowser for OAuth
       const result = await WebBrowser.openAuthSessionAsync(
         data.data.authUrl,
         redirectUri
@@ -267,32 +241,6 @@ class AuthService {
       // Send error to Discord
       this.sendErrorToDiscord('Discord Authentication Error', error);
       throw new Error('Discord authentication failed');
-    }
-  }
-
-  // Generic backend communication
-  private async sendToBackend(provider: string, authData: any): Promise<LoginResponse> {
-    try {
-      const response = await fetch(`${BACKEND_BASE_URL}/api/login/${provider}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(authData),
-      });
-
-      if (!response.ok) {
-        throw new Error(`Backend authentication failed: ${response.status}`);
-      }
-
-      const data = await response.json();
-      return {
-        user: data.user,
-        token: data.token,
-      };
-    } catch (error) {
-      console.error('Backend authentication error:', error);
-      throw new Error('Failed to authenticate with backend');
     }
   }
 
