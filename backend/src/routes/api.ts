@@ -1,4 +1,4 @@
-import { Router } from 'express';
+import { Router, Request, Response } from 'express';
 import {
   login,
   register,
@@ -27,6 +27,8 @@ import {
   validateDiscordAuth
 } from '../validations/userValidation';
 import { verifyToken } from '../middleware/auth';
+import { discordService } from '../services/discordService';
+import { asyncHandler } from '../middleware/errorHandler';
 
 const router = Router();
 
@@ -58,5 +60,32 @@ router.post('/reset-password', validatePasswordReset, resetPassword);
 // User profile
 router.get('/me', verifyToken, getProfile);
 router.put('/profile', verifyToken, validateUserProfileUpdate, updateProfile);
+
+// Error reporting to Discord
+router.post('/error/discord', asyncHandler(async (req: Request, res: Response) => {
+  const frontendError = req.body;
+
+  // Convert frontend error to Discord error payload
+  const discordPayload = {
+    error: frontendError.error || 'Frontend Error',
+    message: frontendError.message || 'No message provided',
+    stack: frontendError.stack,
+    userId: frontendError.userId,
+    endpoint: frontendError.page || frontendError.url,
+    method: 'Frontend',
+    timestamp: frontendError.timestamp || new Date().toISOString(),
+    environment: process.env.NODE_ENV || 'development',
+    source: 'frontend' as const,
+    userAgent: frontendError.userAgent,
+    ip: req.ip || req.connection.remoteAddress,
+  };
+
+  await discordService.sendErrorToDiscord(discordPayload);
+
+  res.status(200).json({
+    success: true,
+    message: 'Error reported to Discord successfully',
+  });
+}));
 
 export default router; 

@@ -3,6 +3,7 @@ import { useMutation } from '@tanstack/react-query';
 import { authService } from '../services/authService';
 import { User, LoginResponse } from '../types/auth';
 import { useRouter } from 'expo-router';
+import { frontendDiscordService } from '../services/discordService';
 
 interface AuthState {
   user: User | null;
@@ -44,6 +45,10 @@ export const useAuth = () => {
 
   const login = (user: User, token: string) => {
     setAuthData(user, token);
+
+    // Setup Discord error reporting for this user
+    frontendDiscordService.setupGlobalErrorHandlers(user.id);
+
     // Navigate to dashboard after successful login
     router.replace('/(tabs)/home');
   };

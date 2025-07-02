@@ -8,6 +8,7 @@ import {
   SettingsSection,
   LogoutButton,
   AppVersion,
+  ErrorTestButton,
 } from '../../components/profile'
 
 export default function ProfileScreen() {
@@ -47,6 +48,20 @@ export default function ProfileScreen() {
               testID="app-settings"
             />
           </View>
+
+          {/* Discord Error Testing (Development Only) */}
+          {__DEV__ && (
+            <View className="mt-6">
+              <SettingsSection
+                title="🧪 Discord Error Testing"
+                options={[]}
+                testID="error-testing"
+              />
+              <View className="mt-4">
+                <ErrorTestButton userId={user?.id} />
+              </View>
+            </View>
+          )}
 
           {/* Logout Button */}
           <View className="mt-8">

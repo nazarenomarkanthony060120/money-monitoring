@@ -36,7 +36,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     // '@react-native-google-signin/google-signin'
   ],
   extra: {
-    backendApiUrl: process.env.MONEY_MONITORING_BACKEND_BASE_API || 'http://localhost:5000',
+    backendApiUrl: process.env.EXPO_PUBLIC_BACKEND_URL || 'http://localhost:5000',
     googleSignInAndroidClientId: process.env.GOOGLE_SIGNIN_ANDROID_CLIENT_ID || '',
   }
 }); 

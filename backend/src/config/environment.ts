@@ -26,7 +26,8 @@ const requiredEnvVars = [
   'CORS_ORIGIN',
   'BCRYPT_ROUNDS',
   'BACKEND_BASE_URL',
-  'FRONTEND_URL'
+  'FRONTEND_URL',
+  'DISCORD_WEB_HOOK_API'
 ];
 
 // Check for missing environment variables
@@ -61,6 +62,7 @@ interface EnvironmentConfig {
   BCRYPT_ROUNDS: string;
   BACKEND_BASE_URL: string;
   FRONTEND_URL: string;
+  DISCORD_WEB_HOOK_API: string;
 }
 
 // Environment configuration object
@@ -86,7 +88,8 @@ export const env: EnvironmentConfig = {
   CORS_ORIGIN: process.env.CORS_ORIGIN!,
   BCRYPT_ROUNDS: process.env.BCRYPT_ROUNDS || '12',
   BACKEND_BASE_URL: process.env.BACKEND_BASE_URL!,
-  FRONTEND_URL: process.env.FRONTEND_URL!
+  FRONTEND_URL: process.env.FRONTEND_URL!,
+  DISCORD_WEB_HOOK_API: process.env.DISCORD_WEB_HOOK_API!
 };
 
 // Environment validation

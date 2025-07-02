@@ -5,6 +5,7 @@ import helmet from 'helmet';
 import { connectDatabase } from './config/database';
 import apiRoutes from './routes/api';
 import { handleError, formatErrorResponse, logError } from './utils/errors';
+import { errorHandler, notFoundHandler } from './middleware/errorHandler';
 import { env } from './config/environment';
 
 // Initialize Express app
@@ -43,20 +44,11 @@ app.get('/api/health', (req, res) => {
 // API routes
 app.use('/api', apiRoutes);
 
-// 404 handler
-app.use('*', (req, res) => {
-  res.status(404).json({
-    status: 'error',
-    message: `Route ${req.originalUrl} not found`
-  });
-});
+// 404 handler with Discord integration
+app.use('*', notFoundHandler);
 
-// Global error handler
-app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
-  logError(err, req);
-  const error = handleError(err);
-  res.status(error.statusCode || 500).json(formatErrorResponse(error));
-});
+// Global error handler with Discord integration
+app.use(errorHandler);
 
 // Graceful shutdown handler
 process.on('SIGTERM', () => {

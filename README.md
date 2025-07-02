@@ -109,7 +109,7 @@ npm install
 Create a `.env` file in the frontend directory:
 
 ```env
-MONEY_MONITORING_BACKEND_BASE_API=http://localhost:5000
+EXPO_PUBLIC_BACKEND_URL=http://localhost:5000
 GOOGLE_SIGNIN_ANDROID_CLIENT_ID=your-android-client-id
 GOOGLE_SIGNIN_IOS_CLIENT_ID=your-ios-client-id
 GOOGLE_SIGNIN_WEB_CLIENT_ID=your-web-client-id
