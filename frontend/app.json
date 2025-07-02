@@ -1,11 +1,11 @@
 {
   "expo": {
     "name": "Money_Monitoring",
-    "slug": "Money_Monitoring",
+    "slug": "money-monitoring",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "Money_Monitoring",
+    "scheme": "money-monitoring",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
