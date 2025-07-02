@@ -4,6 +4,8 @@ import User from '../models/User';
 import { generateToken } from '../middleware/auth';
 import { ApiError } from '../utils/errors';
 import { env } from '../config/environment';
+import { IUserDocument } from '../types';
+import { Types } from 'mongoose';
 
 // Initialize Google OAuth2 client
 const googleClient = new OAuth2Client(env.GOOGLE_CLIENT_ID);
@@ -59,7 +61,7 @@ class AuthService {
     const user = await User.findOne({
       email: email.toLowerCase(),
       provider: 'email'
-    }).select('+password') as any;
+    }).select('+password') as IUserDocument | null;
 
     if (!user) {
       throw new ApiError(401, 'Invalid email or password');
@@ -77,14 +79,14 @@ class AuthService {
 
     // Generate JWT token
     const token = generateToken({
-      userId: user._id.toString(),
+      userId: (user as any)._id.toString(),
       email: user.email,
       provider: user.provider
     });
 
     return {
       user: {
-        id: user._id.toString(),
+        id: (user as any)._id.toString(),
         name: user.name,
         email: user.email,
         picture: user.picture,
@@ -123,14 +125,14 @@ class AuthService {
 
     // Generate JWT token
     const token = generateToken({
-      userId: user._id.toString(),
+      userId: (user as any)._id.toString(),
       email: user.email,
       provider: user.provider
     });
 
     return {
       user: {
-        id: user._id.toString(),
+        id: (user as any)._id.toString(),
         name: user.name,
         email: user.email,
         picture: user.picture,
@@ -177,14 +179,14 @@ class AuthService {
 
       // Generate JWT token
       const token = generateToken({
-        userId: user._id.toString(),
+        userId: (user as any)._id.toString(),
         email: user.email,
         provider: user.provider
       });
 
       return {
         user: {
-          id: user._id.toString(),
+          id: (user as any)._id.toString(),
           name: user.name,
           email: user.email,
           picture: user.picture,
@@ -226,7 +228,7 @@ class AuthService {
         name: userData.name,
         picture: userData.photo,
         provider: 'facebook'
-      }) as any;
+      });
 
       // Update last login
       user.lastLogin = new Date();
@@ -234,14 +236,14 @@ class AuthService {
 
       // Generate JWT token
       const token = generateToken({
-        userId: user._id.toString(),
+        userId: (user as any)._id.toString(),
         email: user.email,
         provider: user.provider
       });
 
       return {
         user: {
-          id: user._id.toString(),
+          id: (user as any)._id.toString(),
           name: user.name,
           email: user.email,
           picture: user.picture,
@@ -287,7 +289,7 @@ class AuthService {
         name: userData.name,
         picture: userData.photo,
         provider: 'discord'
-      }) as any;
+      });
 
       // Update last login
       user.lastLogin = new Date();
@@ -295,14 +297,14 @@ class AuthService {
 
       // Generate JWT token
       const token = generateToken({
-        userId: user._id.toString(),
+        userId: (user as any)._id.toString(),
         email: user.email,
         provider: user.provider
       });
 
       return {
         user: {
-          id: user._id.toString(),
+          id: (user as any)._id.toString(),
           name: user.name,
           email: user.email,
           picture: user.picture,
@@ -367,7 +369,7 @@ class AuthService {
     }
 
     return {
-      id: user._id.toString(),
+      id: (user._id as Types.ObjectId).toString(),
       name: user.name,
       email: user.email,
       picture: user.picture,
@@ -394,7 +396,7 @@ class AuthService {
     await user.save();
 
     return {
-      id: user._id.toString(),
+      id: (user._id as Types.ObjectId).toString(),
       name: user.name,
       email: user.email,
       picture: user.picture,

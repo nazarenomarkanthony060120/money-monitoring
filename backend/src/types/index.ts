@@ -1,9 +1,8 @@
 import { Request } from 'express';
-import { Model } from 'mongoose';
+import { Model, Document } from 'mongoose';
 
 // User Types
 export interface IUser {
-  _id: string;
   name: string;
   email: string;
   password?: string;
@@ -53,7 +52,6 @@ export interface IUserModel extends Model<IUserDocument> {
 
 // Transaction Types
 export interface ITransaction {
-  _id: string;
   user: string; // ObjectId reference to User
   type: 'income' | 'expense';
   amount: number;
@@ -112,7 +110,6 @@ export interface ITransactionModel extends Model<ITransactionDocument> {
 
 // Category Types
 export interface ICategory {
-  _id: string;
   user: string; // ObjectId reference to User
   name: string;
   icon: string;
@@ -149,7 +146,6 @@ export interface ICategoryModel extends Model<ICategoryDocument> {
 
 // Budget Types
 export interface IBudget {
-  _id: string;
   userId: string;
   name: string;
   amount: number;
@@ -166,7 +162,7 @@ export interface IBudgetDocument extends IBudget, Document { }
 
 // Authentication Types
 export interface IAuthRequest extends Request {
-  user?: IUser;
+  user?: IUserDocument;
 }
 
 export interface ILoginRequest {
