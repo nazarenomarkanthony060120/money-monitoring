@@ -4,9 +4,6 @@
     "appVersionSource": "remote"
   },
   "build": {
-    "android": {
-      "jdk": "17"
-    },
     "development": {
       "developmentClient": true,
       "distribution": "internal"
