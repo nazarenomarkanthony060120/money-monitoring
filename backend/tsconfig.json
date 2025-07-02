@@ -21,6 +21,7 @@
     "noFallthroughCasesInSwitch": true,
     "moduleResolution": "node",
     "baseUrl": "./",
+    "types": ["@types/bcryptjs"],
     "paths": {
       "@/*": ["src/*"],
       "@/config/*": ["src/config/*"],
