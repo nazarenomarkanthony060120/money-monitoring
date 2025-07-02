@@ -36,6 +36,10 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     // '@react-native-google-signin/google-signin'
   ],
   extra: {
+    router: {},
+    eas: {
+      projectId: '7c9ebbd3-0e1b-494f-bb1a-a37ab895d887'
+    },
     backendApiUrl: process.env.EXPO_PUBLIC_BACKEND_URL || 'http://localhost:5000',
     googleSignInAndroidClientId: process.env.GOOGLE_SIGNIN_ANDROID_CLIENT_ID || '',
   }
