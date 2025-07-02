@@ -1,4 +1,4 @@
-import React from "react";
+import React from 'react'
 import {
   View,
   Text,
@@ -7,9 +7,9 @@ import {
   Image,
   ScrollView,
   StatusBar,
-} from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
-import { useAuth } from "../../hooks/useAuth";
+} from 'react-native'
+import { SafeAreaView } from 'react-native-safe-area-context'
+import { useAuth } from '../../hooks/useAuth'
 
 const ProfileOption = ({
   icon,
@@ -20,7 +20,7 @@ const ProfileOption = ({
 }: any) => (
   <TouchableOpacity
     onPress={onPress}
-    className={`flex-row items-center py-4 ${showBorder ? "border-b border-gray-100" : ""}`}
+    className={`flex-row items-center py-4 ${showBorder ? 'border-b border-gray-100' : ''}`}
   >
     <View className="w-10 h-10 bg-gray-50 rounded-xl items-center justify-center mr-4">
       <Text className="text-xl">{icon}</Text>
@@ -33,24 +33,24 @@ const ProfileOption = ({
     </View>
     <Text className="text-gray-400 text-lg">›</Text>
   </TouchableOpacity>
-);
+)
 
 export default function ProfileScreen() {
-  const { user, logout } = useAuth();
+  const { user, logout } = useAuth()
 
   const handleLogout = () => {
-    Alert.alert("Logout", "Are you sure you want to logout?", [
+    Alert.alert('Logout', 'Are you sure you want to logout?', [
       {
-        text: "Cancel",
-        style: "cancel",
+        text: 'Cancel',
+        style: 'cancel',
       },
       {
-        text: "Logout",
-        style: "destructive",
+        text: 'Logout',
+        style: 'destructive',
         onPress: logout,
       },
-    ]);
-  };
+    ])
+  }
 
   return (
     <SafeAreaView className="flex-1 bg-gray-50">
@@ -68,22 +68,22 @@ export default function ProfileScreen() {
                 />
               ) : (
                 <Text className="text-white text-3xl font-bold">
-                  {user?.name?.charAt(0) || "U"}
+                  {user?.name?.charAt(0) || 'U'}
                 </Text>
               )}
             </View>
             <Text className="text-white text-2xl font-bold mb-2">
-              {user?.name || "User"}
+              {user?.name || 'User'}
             </Text>
             <Text className="text-white/80 text-lg mb-3">
-              {user?.email || "user@example.com"}
+              {user?.email || 'user@example.com'}
             </Text>
             <View className="bg-white/20 px-4 py-2 rounded-full backdrop-blur-sm">
               <Text className="text-white font-medium">
                 {user?.provider
                   ? user.provider.charAt(0).toUpperCase() +
                     user.provider.slice(1)
-                  : "Unknown"}{" "}
+                  : 'Unknown'}{' '}
                 User
               </Text>
             </View>
@@ -174,11 +174,11 @@ export default function ProfileScreen() {
           </TouchableOpacity>
 
           {/* App Version */}
-          <View className="items-center mt-8 mb-6">
+          <View className="items-center mt-8 mb-12">
             <Text className="text-gray-400 text-sm">Money Monitor v1.0.0</Text>
           </View>
         </View>
       </ScrollView>
     </SafeAreaView>
-  );
+  )
 }

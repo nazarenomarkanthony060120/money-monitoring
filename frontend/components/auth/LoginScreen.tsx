@@ -3,6 +3,7 @@ import { View, Alert, StatusBar, Platform } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import * as SystemUI from 'expo-system-ui'
 import { useAuth } from '../../hooks/useAuth'
+import { useRouter } from 'expo-router'
 import { GradientBackground } from './GradientBackground'
 import { LoginHeader } from './LoginHeader'
 import { FeaturesSection } from './FeaturesSection'
@@ -10,9 +11,16 @@ import { LoginForm } from './LoginForm'
 import { LoginFooter } from './LoginFooter'
 
 export const LoginScreen: React.FC = () => {
-  const { login, isLoading, error, clearError } = useAuth()
+  const { login, isLoading, error, clearError, user } = useAuth()
+  const router = useRouter()
 
   useEffect(() => {
+    // Redirect to dashboard if user is already authenticated
+    if (user) {
+      router.replace('/(tabs)/home')
+      return
+    }
+
     // Set background color for system UI
     SystemUI.setBackgroundColorAsync('#0078c7')
 
@@ -50,7 +58,7 @@ export const LoginScreen: React.FC = () => {
       // But we can make the status bar translucent and extend content
       StatusBar.setTranslucent(true)
     }
-  }, [])
+  }, [user, router])
 
   const handleLogin = async (provider: 'google' | 'facebook' | 'discord') => {
     try {

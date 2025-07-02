@@ -8,7 +8,7 @@ export interface IUser {
   email: string;
   password?: string;
   picture?: string;
-  provider: 'email' | 'google' | 'facebook';
+  provider: 'email' | 'google' | 'facebook' | 'discord';
   isEmailVerified: boolean;
   emailVerificationToken?: string;
   emailVerificationExpires?: Date;
@@ -47,7 +47,7 @@ export interface IUserModel extends Model<IUserDocument> {
     email: string;
     name: string;
     picture?: string;
-    provider: 'google' | 'facebook';
+    provider: 'google' | 'facebook' | 'discord';
   }): Promise<IUserDocument>;
 }
 
@@ -302,7 +302,6 @@ export interface IEnvironment {
   JWT_REFRESH_SECRET: string;
   JWT_REFRESH_EXPIRES_IN: string;
   GOOGLE_CLIENT_ID: string;
-  GOOGLE_CLIENT_SECRET: string;
   FACEBOOK_APP_ID: string;
   FACEBOOK_APP_SECRET: string;
   EMAIL_HOST: string;

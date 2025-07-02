@@ -1,12 +1,12 @@
-import React from "react";
+import React from 'react'
 import {
   View,
   Text,
   ScrollView,
   TouchableOpacity,
   StatusBar,
-} from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+} from 'react-native'
+import { SafeAreaView } from 'react-native-safe-area-context'
 
 const ChartCard = ({ title, value, change, icon, color }: any) => (
   <View className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
@@ -18,12 +18,12 @@ const ChartCard = ({ title, value, change, icon, color }: any) => (
         <Text className="text-2xl">{icon}</Text>
       </View>
       <View
-        className={`px-3 py-1 rounded-full ${change >= 0 ? "bg-green-100" : "bg-red-100"}`}
+        className={`px-3 py-1 rounded-full ${change >= 0 ? 'bg-green-100' : 'bg-red-100'}`}
       >
         <Text
-          className={`text-sm font-medium ${change >= 0 ? "text-green-600" : "text-red-600"}`}
+          className={`text-sm font-medium ${change >= 0 ? 'text-green-600' : 'text-red-600'}`}
         >
-          {change >= 0 ? "+" : ""}
+          {change >= 0 ? '+' : ''}
           {change}%
         </Text>
       </View>
@@ -31,18 +31,18 @@ const ChartCard = ({ title, value, change, icon, color }: any) => (
     <Text className="text-gray-600 text-sm font-medium mb-1">{title}</Text>
     <Text className="text-2xl font-bold text-gray-900">{value}</Text>
   </View>
-);
+)
 
 const InsightCard = ({ title, description, icon, type }: any) => (
   <View className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
     <View className="flex-row items-start">
       <View
         className={`w-10 h-10 rounded-xl items-center justify-center mr-4 ${
-          type === "positive"
-            ? "bg-green-100"
-            : type === "warning"
-              ? "bg-yellow-100"
-              : "bg-blue-100"
+          type === 'positive'
+            ? 'bg-green-100'
+            : type === 'warning'
+              ? 'bg-yellow-100'
+              : 'bg-blue-100'
         }`}
       >
         <Text className="text-xl">{icon}</Text>
@@ -55,7 +55,7 @@ const InsightCard = ({ title, description, icon, type }: any) => (
       </View>
     </View>
   </View>
-);
+)
 
 export default function ExploreScreen() {
   return (
@@ -110,28 +110,28 @@ export default function ExploreScreen() {
             <View className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
               {[
                 {
-                  category: "Food & Dining",
-                  amount: "$450",
+                  category: 'Food & Dining',
+                  amount: '$450',
                   percentage: 18.4,
-                  color: "#ef4444",
+                  color: '#ef4444',
                 },
                 {
-                  category: "Transportation",
-                  amount: "$320",
+                  category: 'Transportation',
+                  amount: '$320',
                   percentage: 13.1,
-                  color: "#f59e0b",
+                  color: '#f59e0b',
                 },
                 {
-                  category: "Shopping",
-                  amount: "$280",
+                  category: 'Shopping',
+                  amount: '$280',
                   percentage: 11.4,
-                  color: "#8b5cf6",
+                  color: '#8b5cf6',
                 },
                 {
-                  category: "Entertainment",
-                  amount: "$180",
+                  category: 'Entertainment',
+                  amount: '$180',
                   percentage: 7.3,
-                  color: "#06b6d4",
+                  color: '#06b6d4',
                 },
               ].map((item, index) => (
                 <View
@@ -202,9 +202,9 @@ export default function ExploreScreen() {
             </View>
           </View>
 
-          <View className="h-20" />
+          <View className="h-32" />
         </View>
       </ScrollView>
     </SafeAreaView>
-  );
+  )
 }

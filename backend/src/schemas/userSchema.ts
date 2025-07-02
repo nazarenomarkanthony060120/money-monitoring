@@ -32,7 +32,7 @@ export const userSchema = new Schema({
   },
   provider: {
     type: String,
-    enum: ['email', 'google', 'facebook'],
+    enum: ['email', 'google', 'facebook', 'discord'],
     default: 'email'
   },
   isEmailVerified: {
@@ -197,7 +197,7 @@ userSchema.statics.findOrCreateOAuthUser = async function (profile: {
   email: string;
   name: string;
   picture?: string;
-  provider: 'google' | 'facebook';
+  provider: 'google' | 'facebook' | 'discord';
 }) {
   let user = await this.findOne({
     email: profile.email,

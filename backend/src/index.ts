@@ -3,7 +3,7 @@ import cors from 'cors';
 import morgan from 'morgan';
 import helmet from 'helmet';
 import { connectDatabase } from './config/database';
-import authRoutes from './routes/auth';
+import apiRoutes from './routes/api';
 import { handleError, formatErrorResponse, logError } from './utils/errors';
 import { env } from './config/environment';
 
@@ -41,7 +41,7 @@ app.get('/api/health', (req, res) => {
 });
 
 // API routes
-app.use('/api/auth', authRoutes);
+app.use('/api', apiRoutes);
 
 // 404 handler
 app.use('*', (req, res) => {

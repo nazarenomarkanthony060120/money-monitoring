@@ -110,7 +110,6 @@ JWT_REFRESH_EXPIRES_IN=30d
 
 # OAuth Configuration
 GOOGLE_CLIENT_ID=your-google-client-id
-GOOGLE_CLIENT_SECRET=your-google-client-secret
 FACEBOOK_APP_ID=your-facebook-app-id
 FACEBOOK_APP_SECRET=your-facebook-app-secret
 

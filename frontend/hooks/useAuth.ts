@@ -1,9 +1,61 @@
+import { useState } from 'react';
 import { useMutation } from '@tanstack/react-query';
-import { useAuthStore } from '../stores/authStore';
 import { authService } from '../services/authService';
+import { User, LoginResponse } from '../types/auth';
+import { useRouter } from 'expo-router';
+
+interface AuthState {
+  user: User | null;
+  token: string | null;
+  isLoading: boolean;
+  error: string | null;
+}
 
 export const useAuth = () => {
-  const { user, isAuthenticated, isLoading, error, login, logout, setLoading, setError, clearError } = useAuthStore();
+  const [authState, setAuthState] = useState<AuthState>({
+    user: null,
+    token: null,
+    isLoading: false,
+    error: null,
+  });
+  const router = useRouter();
+
+  const setLoading = (loading: boolean) => {
+    setAuthState(prev => ({ ...prev, isLoading: loading }));
+  };
+
+  const setError = (error: string | null) => {
+    setAuthState(prev => ({ ...prev, error }));
+  };
+
+  const clearError = () => {
+    setError(null);
+  };
+
+  const login = (user: User, token: string) => {
+    setAuthState(prev => ({
+      ...prev,
+      user,
+      token,
+      isLoading: false,
+      error: null,
+    }));
+
+    // Navigate to dashboard after successful login
+    router.replace('/(tabs)/home');
+  };
+
+  const logout = () => {
+    setAuthState({
+      user: null,
+      token: null,
+      isLoading: false,
+      error: null,
+    });
+
+    // Navigate back to login screen
+    router.replace('/');
+  };
 
   const loginMutation = useMutation({
     mutationFn: async (provider: 'google' | 'facebook' | 'discord') => {
@@ -35,17 +87,13 @@ export const useAuth = () => {
     }
   };
 
-  const handleLogout = () => {
-    logout();
-  };
-
   return {
-    user,
-    isAuthenticated,
-    isLoading: isLoading || loginMutation.isPending,
-    error,
+    user: authState.user,
+    token: authState.token,
+    isLoading: authState.isLoading || loginMutation.isPending,
+    error: authState.error,
     login: handleLogin,
-    logout: handleLogout,
+    logout,
     clearError,
   };
 }; 

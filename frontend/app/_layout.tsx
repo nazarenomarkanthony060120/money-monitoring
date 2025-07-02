@@ -2,7 +2,7 @@ import React from 'react'
 import { Stack } from 'expo-router'
 import { StatusBar } from 'expo-status-bar'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { useAuthStore } from '../stores/authStore'
+import '../global.css'
 
 // Create a client
 const queryClient = new QueryClient({
@@ -15,8 +15,6 @@ const queryClient = new QueryClient({
 })
 
 export default function RootLayout() {
-  const { isAuthenticated } = useAuthStore()
-
   return (
     <QueryClientProvider client={queryClient}>
       <Stack
@@ -24,22 +22,16 @@ export default function RootLayout() {
           headerShown: false,
         }}
       >
-        {!isAuthenticated ? (
-          <Stack.Screen
-            name="index"
-            options={{
-              statusBarHidden: true,
-              statusBarStyle: 'light',
-            }}
-          />
-        ) : (
-          <Stack.Screen name="(tabs)" />
-        )}
+        <Stack.Screen
+          name="index"
+          options={{
+            statusBarHidden: true,
+            statusBarStyle: 'light',
+          }}
+        />
+        <Stack.Screen name="(tabs)" />
       </Stack>
-      <StatusBar
-        style={!isAuthenticated ? 'light' : 'auto'}
-        hidden={!isAuthenticated}
-      />
+      <StatusBar style="auto" />
     </QueryClientProvider>
   )
 }

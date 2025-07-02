@@ -13,9 +13,10 @@ const requiredEnvVars = [
   'JWT_REFRESH_SECRET',
   'JWT_REFRESH_EXPIRES_IN',
   'GOOGLE_CLIENT_ID',
-  'GOOGLE_CLIENT_SECRET',
   'FACEBOOK_APP_ID',
   'FACEBOOK_APP_SECRET',
+  'DISCORD_CLIENT_ID',
+  'DISCORD_CLIENT_SECRET',
   'EMAIL_HOST',
   'EMAIL_PORT',
   'EMAIL_USER',
@@ -23,7 +24,9 @@ const requiredEnvVars = [
   'RATE_LIMIT_WINDOW_MS',
   'RATE_LIMIT_MAX_REQUESTS',
   'CORS_ORIGIN',
-  'BCRYPT_ROUNDS'
+  'BCRYPT_ROUNDS',
+  'BACKEND_BASE_URL',
+  'FRONTEND_URL'
 ];
 
 // Check for missing environment variables
@@ -44,9 +47,10 @@ interface EnvironmentConfig {
   JWT_REFRESH_SECRET: string;
   JWT_REFRESH_EXPIRES_IN: string;
   GOOGLE_CLIENT_ID: string;
-  GOOGLE_CLIENT_SECRET: string;
   FACEBOOK_APP_ID: string;
   FACEBOOK_APP_SECRET: string;
+  DISCORD_CLIENT_ID: string;
+  DISCORD_CLIENT_SECRET: string;
   EMAIL_HOST: string;
   EMAIL_PORT: number;
   EMAIL_USER: string;
@@ -55,6 +59,8 @@ interface EnvironmentConfig {
   RATE_LIMIT_MAX_REQUESTS: number;
   CORS_ORIGIN: string;
   BCRYPT_ROUNDS: string;
+  BACKEND_BASE_URL: string;
+  FRONTEND_URL: string;
 }
 
 // Environment configuration object
@@ -67,9 +73,10 @@ export const env: EnvironmentConfig = {
   JWT_REFRESH_SECRET: process.env.JWT_REFRESH_SECRET!,
   JWT_REFRESH_EXPIRES_IN: process.env.JWT_REFRESH_EXPIRES_IN!,
   GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID!,
-  GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET!,
   FACEBOOK_APP_ID: process.env.FACEBOOK_APP_ID!,
   FACEBOOK_APP_SECRET: process.env.FACEBOOK_APP_SECRET!,
+  DISCORD_CLIENT_ID: process.env.DISCORD_CLIENT_ID!,
+  DISCORD_CLIENT_SECRET: process.env.DISCORD_CLIENT_SECRET!,
   EMAIL_HOST: process.env.EMAIL_HOST!,
   EMAIL_PORT: parseInt(process.env.EMAIL_PORT || '587', 10),
   EMAIL_USER: process.env.EMAIL_USER!,
@@ -77,7 +84,9 @@ export const env: EnvironmentConfig = {
   RATE_LIMIT_WINDOW_MS: parseInt(process.env.RATE_LIMIT_WINDOW_MS || '900000', 10),
   RATE_LIMIT_MAX_REQUESTS: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS || '100', 10),
   CORS_ORIGIN: process.env.CORS_ORIGIN!,
-  BCRYPT_ROUNDS: process.env.BCRYPT_ROUNDS || '12'
+  BCRYPT_ROUNDS: process.env.BCRYPT_ROUNDS || '12',
+  BACKEND_BASE_URL: process.env.BACKEND_BASE_URL!,
+  FRONTEND_URL: process.env.FRONTEND_URL!
 };
 
 // Environment validation
