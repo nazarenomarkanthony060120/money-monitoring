@@ -1,0 +1,58 @@
+{
+  "expo": {
+    "name": "Money_Monitoring",
+    "slug": "Money_Monitoring",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/images/icon.png",
+    "scheme": "Money_Monitoring",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.money-monitoring.system",
+      "statusBarHidden": true
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/images/adaptive-icon.png",
+        "backgroundColor": "#ffffff"
+      },
+      "edgeToEdgeEnabled": true,
+      "package": "com.nazarenomarkanthony060120.money_monitoring_system",
+      "statusBarHidden": true,
+      "navigationBarHidden": true,
+      "softwareKeyboardLayoutMode": "pan",
+      "allowBackup": false,
+      "fullscreen": true
+    },
+    "web": {
+      "bundler": "metro",
+      "output": "static",
+      "favicon": "./assets/images/favicon.png"
+    },
+    "plugins": [
+      "expo-router",
+      "@react-native-google-signin/google-signin",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/images/splash-icon.png",
+          "imageWidth": 200,
+          "resizeMode": "contain",
+          "backgroundColor": "#ffffff"
+        }
+      ]
+    ],
+    "experiments": {
+      "typedRoutes": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "7c9ebbd3-0e1b-494f-bb1a-a37ab895d887"
+      },
+      "googleClientId": "544430917308-uep067du60f23usbje9pueu77a4ds9q0.apps.googleusercontent.com"
+    }
+  }
+}

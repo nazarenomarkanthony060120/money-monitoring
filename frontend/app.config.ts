@@ -4,6 +4,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   ...config,
   name: 'Money Monitoring',
   slug: 'money-monitoring',
+  owner: 'nazarenomarkanthony060120',
   version: '1.0.0',
   orientation: 'portrait',
   icon: './assets/images/icon.png',
@@ -38,7 +39,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   extra: {
     router: {},
     eas: {
-      projectId: '7c9ebbd3-0e1b-494f-bb1a-a37ab895d887'
+      projectId: "e8c634ad-1ee5-4b26-8625-ac74e629211a"
     },
     backendApiUrl: process.env.EXPO_PUBLIC_BACKEND_URL || 'http://localhost:5000',
     googleSignInAndroidClientId: process.env.GOOGLE_SIGNIN_ANDROID_CLIENT_ID || '',
