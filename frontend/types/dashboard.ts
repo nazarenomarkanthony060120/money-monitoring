@@ -3,6 +3,7 @@ export interface User {
   name?: string
   email?: string
   avatar?: string
+  provider?: string
 }
 
 export interface Transaction {
@@ -14,6 +15,8 @@ export interface Transaction {
   category?: string
   type?: 'income' | 'expense'
   date?: Date
+  description?: string
+  recurring?: boolean
 }
 
 export interface StatData {
@@ -25,6 +28,7 @@ export interface StatData {
     value: string
     isPositive: boolean
   }
+  subtitle?: string
 }
 
 export interface QuickAction {
@@ -33,6 +37,8 @@ export interface QuickAction {
   icon: string
   onPress: () => void
   iconBackgroundColor?: string
+  badge?: string
+  disabled?: boolean
 }
 
 export interface BalanceData {
@@ -40,6 +46,8 @@ export interface BalanceData {
   changePercentage: string
   changeDescription: string
   isPositiveChange?: boolean
+  previousBalance?: string
+  currency?: string
 }
 
 export interface DashboardData {
@@ -47,4 +55,40 @@ export interface DashboardData {
   stats: StatData[]
   quickActions: QuickAction[]
   recentTransactions: Transaction[]
+}
+
+export interface Category {
+  id: string
+  name: string
+  icon: string
+  color: string
+  budget?: number
+  spent?: number
+  type: 'income' | 'expense'
+}
+
+export interface Budget {
+  id: string
+  name: string
+  amount: number
+  spent: number
+  period: 'weekly' | 'monthly' | 'yearly'
+  category?: string
+  startDate: Date
+  endDate: Date
+}
+
+export interface NotificationSettings {
+  budgetAlerts: boolean
+  transactionReminders: boolean
+  weeklyReports: boolean
+  monthlyReports: boolean
+  pushNotifications: boolean
+}
+
+export interface DashboardSettings {
+  currency: string
+  dateFormat: string
+  theme: 'light' | 'dark' | 'auto'
+  notifications: NotificationSettings
 } 

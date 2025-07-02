@@ -44,10 +44,9 @@ export const useDashboard = (): DashboardData => {
       {
         title: 'Add Transaction',
         subtitle: 'Record income or expense',
-        icon: '➕',
+        icon: '💰',
         iconBackgroundColor: '#dbeafe', // blue-50
         onPress: () => {
-          // TODO: Navigate to add transaction screen
           console.log('Navigate to add transaction')
         },
       },
@@ -57,7 +56,6 @@ export const useDashboard = (): DashboardData => {
         icon: '📊',
         iconBackgroundColor: '#dcfce7', // green-50
         onPress: () => {
-          // TODO: Navigate to analytics screen
           console.log('Navigate to analytics')
         },
       },
@@ -67,7 +65,6 @@ export const useDashboard = (): DashboardData => {
         icon: '🎯',
         iconBackgroundColor: '#fef3c7', // yellow-50
         onPress: () => {
-          // TODO: Navigate to budget screen
           console.log('Navigate to budget')
         },
       },
@@ -77,8 +74,25 @@ export const useDashboard = (): DashboardData => {
         icon: '📄',
         iconBackgroundColor: '#f3e8ff', // purple-50
         onPress: () => {
-          // TODO: Handle export functionality
           console.log('Export report')
+        },
+      },
+      {
+        title: 'Categories',
+        subtitle: 'Manage expense categories',
+        icon: '🏷️',
+        iconBackgroundColor: '#fef2f2', // red-50
+        onPress: () => {
+          console.log('Navigate to categories')
+        },
+      },
+      {
+        title: 'Recurring Payments',
+        subtitle: 'Manage subscriptions',
+        icon: '🔄',
+        iconBackgroundColor: '#f0f9ff', // sky-50
+        onPress: () => {
+          console.log('Navigate to recurring payments')
         },
       },
     ]
@@ -86,7 +100,7 @@ export const useDashboard = (): DashboardData => {
     const recentTransactions: Transaction[] = [
       {
         id: '1',
-        title: 'Coffee Shop',
+        title: 'Starbucks Coffee',
         amount: '-$4.50',
         time: '2 hours ago',
         icon: '☕',
@@ -95,19 +109,46 @@ export const useDashboard = (): DashboardData => {
       },
       {
         id: '2',
-        title: 'Grocery Store',
+        title: 'Whole Foods Market',
         amount: '-$85.20',
-        time: 'Yesterday',
+        time: 'yesterday',
         icon: '🛒',
         category: 'Groceries',
         type: 'expense',
       },
       {
         id: '3',
-        title: 'Salary',
+        title: 'Monthly Salary',
         amount: '+$3,200',
         time: '2 days ago',
         icon: '💰',
+        category: 'Income',
+        type: 'income',
+      },
+      {
+        id: '4',
+        title: 'Netflix Subscription',
+        amount: '-$15.99',
+        time: '3 days ago',
+        icon: '📺',
+        category: 'Entertainment',
+        type: 'expense',
+      },
+      {
+        id: '5',
+        title: 'Uber Ride',
+        amount: '-$12.30',
+        time: '4 days ago',
+        icon: '🚗',
+        category: 'Transportation',
+        type: 'expense',
+      },
+      {
+        id: '6',
+        title: 'Freelance Project',
+        amount: '+$450.00',
+        time: '5 days ago',
+        icon: '💻',
         category: 'Income',
         type: 'income',
       },
@@ -127,17 +168,41 @@ export const useDashboard = (): DashboardData => {
 // Navigation handlers hook
 export const useDashboardNavigation = () => {
   const handleViewAllTransactions = () => {
-    // TODO: Navigate to transactions screen
     console.log('Navigate to all transactions')
+    // TODO: Navigate to transactions screen
   }
 
   const handleTransactionPress = (transaction: Transaction) => {
+    console.log('Transaction pressed:', transaction.title)
     // TODO: Navigate to transaction detail or edit screen
-    console.log('Transaction pressed:', transaction)
+  }
+
+  const handleAddTransaction = () => {
+    console.log('Navigate to add transaction')
+    // TODO: Navigate to add transaction screen
+  }
+
+  const handleViewAnalytics = () => {
+    console.log('Navigate to analytics')
+    // TODO: Navigate to analytics screen
+  }
+
+  const handleSetBudget = () => {
+    console.log('Navigate to budget setup')
+    // TODO: Navigate to budget screen
+  }
+
+  const handleExportReport = () => {
+    console.log('Export financial report')
+    // TODO: Handle export functionality
   }
 
   return {
     handleViewAllTransactions,
     handleTransactionPress,
+    handleAddTransaction,
+    handleViewAnalytics,
+    handleSetBudget,
+    handleExportReport,
   }
 } 

@@ -8,6 +8,7 @@ export { TransactionItem } from './TransactionItem'
 export { RecentTransactionsSection } from './RecentTransactionsSection'
 export { LoadingState } from './LoadingState'
 export { ErrorState } from './ErrorState'
+export { DashboardSummary } from './DashboardSummary'
 
 // Re-export types from centralized location
 export type {
