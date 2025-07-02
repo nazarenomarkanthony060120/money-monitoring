@@ -196,7 +196,7 @@ class AuthService {
         token,
       };
     } catch (error) {
-      console.error('Google authentication error:', error);
+      console.error('Backend Google authentication error:', error);
       if (error instanceof ApiError) {
         throw error;
       }

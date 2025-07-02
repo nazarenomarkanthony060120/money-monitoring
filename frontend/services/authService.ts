@@ -18,7 +18,7 @@ try {
 WebBrowser.maybeCompleteAuthSession();
 
 // Configuration
-const BACKEND_BASE_URL = Constants.expoConfig?.extra?.backendApiUrl || 'http://localhost:5000';
+const BACKEND_BASE_URL = process.env.EXPO_PUBLIC_BACKEND_URL || 'http://localhost:5000';
 
 // Auth providers configuration
 export const AUTH_PROVIDERS: AuthProvider[] = [
@@ -105,6 +105,9 @@ class AuthService {
         const authData = this.prepareGoogleAuthData(userInfo);
         return await this.sendToBackend('google', authData);
       } catch (error: any) {
+        console.error('Google Sign-In Error:', error);
+        // Send error to Discord
+        this.sendErrorToDiscord('Google Native Authentication Error', error);
         throw this.handleGoogleError(error);
       }
     } else {
@@ -124,14 +127,23 @@ class AuthService {
         throw new Error('Failed to get Google auth URL');
       }
 
-      // Open browser for OAuth
-      const result = await WebBrowser.openAuthSessionAsync(data.data.authUrl, 'moneymonitoring://');
+      // Open browser for OAuth with proper redirect URI
+      const redirectUri = `${BACKEND_BASE_URL}/api/auth/google/callback`;
+      const result = await WebBrowser.openAuthSessionAsync(
+        data.data.authUrl,
+        redirectUri
+      );
 
       if (result.type === 'success') {
         // Parse the result URL to extract token and user data
         const url = new URL(result.url);
         const token = url.searchParams.get('token');
         const userParam = url.searchParams.get('user');
+        const error = url.searchParams.get('error');
+
+        if (error) {
+          throw new Error(`Google authentication failed: ${error}`);
+        }
 
         if (token && userParam) {
           const user = JSON.parse(decodeURIComponent(userParam));
@@ -139,9 +151,11 @@ class AuthService {
         }
       }
 
-      throw new Error('Google authentication failed');
+      throw new Error('Google authentication was cancelled or failed');
     } catch (error) {
-      console.error('Google authentication error:', error);
+      console.error('Frontend Google authentication error:', error);
+      // Send error to Discord
+      this.sendErrorToDiscord('Google Web Authentication Error', error);
       throw new Error('Google authentication failed');
     }
   }
@@ -215,8 +229,9 @@ class AuthService {
   // Discord Sign-In (handled by backend)
   async loginWithDiscord(): Promise<LoginResponse> {
     try {
-      // Get OAuth URL from backend
-      const response = await fetch(`${BACKEND_BASE_URL}/api/auth/discord/url`);
+      // Get OAuth URL from backend with proper redirect URI
+      const redirectUri = `${BACKEND_BASE_URL}/api/auth/discord/callback`;
+      const response = await fetch(`${BACKEND_BASE_URL}/api/auth/discord/url?redirectUri=${encodeURIComponent(redirectUri)}`);
       const data = await response.json();
 
       if (!data.success) {
@@ -224,13 +239,21 @@ class AuthService {
       }
 
       // Open browser for OAuth
-      const result = await WebBrowser.openAuthSessionAsync(data.data.authUrl, 'moneymonitoring://');
+      const result = await WebBrowser.openAuthSessionAsync(
+        data.data.authUrl,
+        redirectUri
+      );
 
       if (result.type === 'success') {
         // Parse the result URL to extract token and user data
         const url = new URL(result.url);
         const token = url.searchParams.get('token');
         const userParam = url.searchParams.get('user');
+        const error = url.searchParams.get('error');
+
+        if (error) {
+          throw new Error(`Discord authentication failed: ${error}`);
+        }
 
         if (token && userParam) {
           const user = JSON.parse(decodeURIComponent(userParam));
@@ -238,9 +261,11 @@ class AuthService {
         }
       }
 
-      throw new Error('Discord authentication failed');
+      throw new Error('Discord authentication was cancelled or failed');
     } catch (error) {
       console.error('Discord authentication error:', error);
+      // Send error to Discord
+      this.sendErrorToDiscord('Discord Authentication Error', error);
       throw new Error('Discord authentication failed');
     }
   }
@@ -332,6 +357,37 @@ class AuthService {
   cleanup(): void {
     if (this.linkingSubscription) {
       this.linkingSubscription.remove();
+    }
+  }
+
+  // Helper method to send errors to Discord
+  private async sendErrorToDiscord(title: string, error: any): Promise<void> {
+    try {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      const errorPayload = {
+        error: title,
+        message: errorMessage,
+        stack: error instanceof Error ? error.stack : undefined,
+        timestamp: new Date().toISOString(),
+        userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : 'React Native',
+        url: 'react-native-app',
+        source: 'frontend' as const,
+        page: 'Login',
+      };
+
+      const response = await fetch(`${BACKEND_BASE_URL}/api/error/discord`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(errorPayload),
+      });
+
+      if (!response.ok) {
+        console.error('Failed to send error to Discord:', response.status);
+      }
+    } catch (discordError) {
+      console.error('Error sending to Discord:', discordError);
     }
   }
 }

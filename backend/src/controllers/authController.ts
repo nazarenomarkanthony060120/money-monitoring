@@ -310,20 +310,19 @@ export const handleGoogleCallback = asyncHandler(async (req: Request, res: Respo
     const { code } = req.query;
 
     if (!code || typeof code !== 'string') {
-      return res.redirect(`${env.FRONTEND_URL}?error=missing_code`);
+      console.error('Google OAuth callback: Missing authorization code');
+      const errorUrl = oauthService.generateErrorRedirect('missing_code');
+      return res.redirect(errorUrl);
     }
 
     const result = await oauthService.handleGoogleCallback(code);
 
     // Redirect to frontend with token and user data
-    const redirectUrl = new URL(env.FRONTEND_URL);
-    redirectUrl.searchParams.set('token', result.token);
-    redirectUrl.searchParams.set('user', encodeURIComponent(JSON.stringify(result.user)));
-
-    res.redirect(redirectUrl.toString());
+    const frontendUrl = oauthService.generateFrontendRedirect(result);
+    res.redirect(frontendUrl);
   } catch (error) {
     console.error('Google OAuth callback error:', error);
-    const errorUrl = `${env.FRONTEND_URL}?error=google_auth_failed`;
+    const errorUrl = oauthService.generateErrorRedirect('google_auth_failed');
     res.redirect(errorUrl);
   }
 }); 

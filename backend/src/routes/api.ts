@@ -88,4 +88,24 @@ router.post('/error/discord', asyncHandler(async (req: Request, res: Response) =
   });
 }));
 
+// Test Discord webhook
+router.post('/test/discord', asyncHandler(async (req: Request, res: Response) => {
+  const testPayload = {
+    error: 'Test Error',
+    message: 'This is a test error to verify Discord webhook integration',
+    timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV || 'development',
+    source: 'backend' as const,
+    endpoint: '/api/test/discord',
+    method: 'POST',
+  };
+
+  await discordService.sendErrorToDiscord(testPayload);
+
+  res.status(200).json({
+    success: true,
+    message: 'Test error sent to Discord successfully',
+  });
+}));
+
 export default router; 

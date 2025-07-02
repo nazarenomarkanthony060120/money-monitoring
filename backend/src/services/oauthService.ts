@@ -28,6 +28,7 @@ export class OAuthService {
   private discordClientId: string;
   private discordClientSecret: string;
   private googleClientId: string;
+  private googleClientSecret: string;
   private baseUrl: string;
   constructor() {
     this.facebookClientId = env.FACEBOOK_APP_ID;
@@ -35,6 +36,7 @@ export class OAuthService {
     this.discordClientId = env.DISCORD_CLIENT_ID;
     this.discordClientSecret = env.DISCORD_CLIENT_SECRET;
     this.googleClientId = env.GOOGLE_CLIENT_ID;
+    this.googleClientSecret = env.GOOGLE_CLIENT_SECRET;
     this.baseUrl = env.BACKEND_BASE_URL || 'http://localhost:5000';
   }
 
@@ -168,6 +170,7 @@ export class OAuthService {
         },
         body: new URLSearchParams({
           client_id: this.googleClientId,
+          client_secret: this.googleClientSecret,
           code,
           grant_type: 'authorization_code',
           redirect_uri: `${this.baseUrl}/api/auth/google/callback`,
