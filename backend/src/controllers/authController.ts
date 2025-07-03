@@ -106,15 +106,34 @@ export const updateProfile = asyncHandler(async (req: Request, res: Response): P
 });
 
 /**
- * @desc    Authenticate user with Google
+ * @desc    Authenticate user with Google (Direct ID Token method)
  * @route   POST /api/login/google
  * @access  Public
+ * @note    For web/mobile apps, consider using the OAuth flow instead:
+ *          1. GET /api/auth/google/url to get OAuth URL
+ *          2. Redirect user to OAuth URL
+ *          3. Google redirects back to /api/auth/google/callback
+ *          4. Backend redirects to frontend with token and user data
  */
 export const loginWithGoogle = asyncHandler(async (req: Request, res: Response): Promise<void> => {
   const { idToken, accessToken, user: googleUser } = req.body;
 
-  if (!idToken || !googleUser) {
-    throw new Error('Google ID token and user data are required');
+  // Provide more specific error messages
+  if (!idToken && !googleUser) {
+    throw new Error('Google ID token and user data are both required. This endpoint expects: { idToken: string, accessToken?: string, user: { id, email, name, photo } }');
+  }
+
+  if (!idToken) {
+    throw new Error('Google ID token is required. This endpoint expects: { idToken: string, accessToken?: string, user: { id, email, name, photo } }');
+  }
+
+  if (!googleUser) {
+    throw new Error('Google user data is required. This endpoint expects: { idToken: string, accessToken?: string, user: { id, email, name, photo } }');
+  }
+
+  // Validate user data structure
+  if (!googleUser.id || !googleUser.email || !googleUser.name) {
+    throw new Error('Google user data must include id, email, and name fields. Received: ' + JSON.stringify(googleUser));
   }
 
   const result = await authService.loginWithGoogle({ idToken, accessToken, user: googleUser });
