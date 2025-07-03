@@ -52,15 +52,21 @@ class AuthService {
   }
 
   private initializeGoogleSignIn(): void {
-    if (GoogleSignin) {
-      try {
-        GoogleSignin.configure({
-          webClientId: process.env.GOOGLE_SIGNIN_ANDROID_CLIENT_ID || '',
-        });
-      } catch (error) {
-        console.warn('Failed to configure Google Sign-in:', error);
-      }
-    }
+    // Disable native GoogleSignin to avoid conflicts with web-based OAuth flow
+    // Using web-based OAuth flow for all platforms (recommended for Expo)
+    console.log('Using web-based Google OAuth flow (recommended for Expo)');
+
+    // If you need native GoogleSignin for standalone apps, uncomment and configure:
+    // if (GoogleSignin && Constants.appOwnership !== 'expo') {
+    //   try {
+    //     const googleClientId = process.env.GOOGLE_CLIENT_ID;
+    //     if (googleClientId) {
+    //       GoogleSignin.configure({ webClientId: googleClientId });
+    //     }
+    //   } catch (error) {
+    //     console.warn('Failed to configure Google Sign-in:', error);
+    //   }
+    // }
   }
 
   private setupLinkingListener(): void {
@@ -261,9 +267,10 @@ class AuthService {
   // Sign out functionality
   async signOut(): Promise<void> {
     try {
-      if (GoogleSignin) {
-        await GoogleSignin.signOut();
-      }
+      // Native GoogleSignin disabled - using web-based OAuth flow only
+      // if (GoogleSignin && Constants.appOwnership !== 'expo') {
+      //   await GoogleSignin.signOut();
+      // }
       await this.sendLogoutToBackend();
     } catch (error) {
       console.error('Sign out error:', error);
@@ -282,9 +289,10 @@ class AuthService {
   // Revoke access functionality
   async revokeAccess(userId: string): Promise<void> {
     try {
-      if (GoogleSignin) {
-        await GoogleSignin.revokeAccess();
-      }
+      // Native GoogleSignin disabled - using web-based OAuth flow only
+      // if (GoogleSignin && Constants.appOwnership !== 'expo') {
+      //   await GoogleSignin.revokeAccess();
+      // }
       await this.sendRevokeToBackend(userId);
     } catch (error) {
       console.error('Revoke access error:', error);
