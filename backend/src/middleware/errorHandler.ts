@@ -59,7 +59,7 @@ export const errorHandler = async (
   }
 
   // Don't leak error details in production
-  if (env.NODE_ENV === 'production' && statusCode === 500) {
+  if (env.NODE_ENV === 'production' || env.NODE_ENV === 'development' && statusCode === 500) {
     message = 'Internal Server Error';
   }
 
