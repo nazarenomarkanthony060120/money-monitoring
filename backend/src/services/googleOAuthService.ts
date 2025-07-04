@@ -37,6 +37,11 @@ interface AuthResult {
   };
 }
 
+interface AuthResultWithRedirect extends AuthResult {
+  redirectUri?: string;
+  isMobileRedirect?: boolean;
+}
+
 interface PKCESession {
   codeVerifier: string;
   redirectUri: string;
@@ -337,7 +342,7 @@ export class GoogleOAuthService {
   /**
  * Handle web callback with PKCE (using stored code verifier)
  */
-  async handleWebCallback(code: string, state: string): Promise<AuthResult> {
+  async handleWebCallback(code: string, state: string): Promise<AuthResultWithRedirect> {
     try {
       console.log('Handling Google OAuth web callback with PKCE');
 
@@ -353,6 +358,9 @@ export class GoogleOAuthService {
         redirectUri: pkceSession.redirectUri,
         sessionAge: Date.now() - pkceSession.timestamp,
       });
+
+      // Determine if this is a mobile redirect
+      const isMobileRedirect = pkceSession.redirectUri.includes('://') && !pkceSession.redirectUri.startsWith('http');
 
       // Use the stored code verifier and redirect URI for token exchange
       const tokens = await this.exchangeCodeForTokens(
@@ -380,11 +388,15 @@ export class GoogleOAuthService {
         userId: authResult.user.id,
         userEmail: authResult.user.email,
         userName: authResult.user.name,
+        isMobileRedirect,
+        originalRedirectUri: pkceSession.redirectUri,
       });
 
       return {
         token: authResult.token,
         user: authResult.user,
+        redirectUri: pkceSession.redirectUri,
+        isMobileRedirect,
       };
     } catch (error) {
       console.error('Google OAuth web callback error:', error);
