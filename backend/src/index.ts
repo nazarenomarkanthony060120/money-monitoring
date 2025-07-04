@@ -44,6 +44,12 @@ app.get('/api/health', (req, res) => {
 // API routes
 app.use('/api', apiRoutes);
 
+app.get('/', (req, res) => {
+  res.status(200).json({
+    message: 'Welcome to the API root. Try /api/health',
+  });
+});
+
 // 404 handler with Discord integration
 app.use('*', notFoundHandler);
 
