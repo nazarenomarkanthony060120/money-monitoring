@@ -49,18 +49,8 @@ export const GoogleSignInButton: React.FC<GoogleSignInButtonProps> = ({
     setIsLoading(true)
 
     try {
-      // Step 1: Generate mobile redirect URI
-      const mobileRedirectUri = AuthSession.makeRedirectUri({
-        scheme: process.env.EXPO_PUBLIC_SCHEME || 'moneymonitoring',
-        path: 'oauth/callback',
-      })
-
-      console.log('Mobile redirect URI:', mobileRedirectUri)
-
-      // Step 2: Get OAuth URL with PKCE challenge from backend
-      const urlResponse = await fetch(
-        `${BACKEND_URL}/api/auth/google/url?redirectUri=${encodeURIComponent(mobileRedirectUri)}`,
-      )
+      // Step 1: Get OAuth URL with PKCE challenge from backend
+      const urlResponse = await fetch(`${BACKEND_URL}/api/auth/google/url`)
 
       if (!urlResponse.ok) {
         throw new Error('Failed to get Google OAuth URL')
@@ -74,14 +64,17 @@ export const GoogleSignInButton: React.FC<GoogleSignInButtonProps> = ({
 
       const { authUrl, codeVerifier } = urlData.data
 
-      // Step 3: Open OAuth URL in browser
+      // Step 2: Open OAuth URL in browser
       const result = await WebBrowser.openAuthSessionAsync(
         authUrl,
-        mobileRedirectUri,
+        AuthSession.makeRedirectUri({
+          scheme: process.env.EXPO_PUBLIC_SCHEME || 'moneymonitoring',
+          path: 'oauth/callback',
+        }),
       )
 
       if (result.type === 'success' && result.url) {
-        // Step 4: Extract authorization code from callback URL
+        // Step 3: Extract authorization code from callback URL
         const url = new URL(result.url)
         const code = url.searchParams.get('code')
         const state = url.searchParams.get('state')
@@ -90,13 +83,7 @@ export const GoogleSignInButton: React.FC<GoogleSignInButtonProps> = ({
           throw new Error('No authorization code received')
         }
 
-        console.log('Authorization code received:', {
-          code: code.substring(0, 20) + '...',
-          state: state,
-          redirectUri: mobileRedirectUri,
-        })
-
-        // Step 5: Exchange code for tokens using PKCE verifier
+        // Step 4: Exchange code for tokens using PKCE verifier
         const tokenResponse = await fetch(
           `${BACKEND_URL}/api/auth/google/token`,
           {
@@ -108,7 +95,6 @@ export const GoogleSignInButton: React.FC<GoogleSignInButtonProps> = ({
               code,
               codeVerifier,
               state,
-              redirectUri: mobileRedirectUri,
             }),
           },
         )
