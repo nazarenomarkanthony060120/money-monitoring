@@ -56,6 +56,7 @@ router.post('/auth/google/token', googleAuthController.exchangeCodeForTokens);
 router.get('/auth/google/callback', googleAuthController.handleCallback);
 router.get('/auth/google/initiate', googleAuthController.initiateAuth);
 router.get('/auth/google/health', googleAuthController.healthCheck);
+router.get('/auth/google/debug', googleAuthController.debugPKCESessions);
 
 // Password management
 router.post('/forgot-password', validatePasswordResetRequest, forgotPassword);
