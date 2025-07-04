@@ -50,7 +50,7 @@ export const errorHandler = async (
   }
 
   // Send error to Discord (only for production errors or 500+ status codes)
-  if (env.NODE_ENV === 'production' || statusCode >= 500) {
+  if (env.NODE_ENV === 'production' || env.NODE_ENV === 'development' || statusCode >= 500) {
     try {
       await discordService.sendErrorToDiscord(errorPayload);
     } catch (discordError) {
