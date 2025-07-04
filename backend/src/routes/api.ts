@@ -18,10 +18,7 @@ import {
   getGoogleAuthUrl,
   handleGoogleCallback
 } from '../controllers/authController';
-import {
-  getGoogleAuthUrl as getGoogleOAuthUrl,
-  exchangeGoogleCode as exchangeGoogleOAuthCode
-} from '../controllers/googleAuthController';
+import { googleAuthController } from '../controllers/googleAuthController';
 import {
   validateUserLogin,
   validateUserRegistration,
@@ -54,9 +51,11 @@ router.get('/auth/facebook/callback', facebookCallback);
 router.get('/auth/discord/callback', discordCallback);
 
 // Google OAuth routes (PKCE implementation)
-router.get('/auth/google/url', getGoogleOAuthUrl);
-router.post('/auth/google/token', exchangeGoogleOAuthCode);
-router.get('/auth/google/callback', handleGoogleCallback);
+router.get('/auth/google/url', googleAuthController.generateAuthUrl);
+router.post('/auth/google/token', googleAuthController.exchangeCodeForTokens);
+router.get('/auth/google/callback', googleAuthController.handleCallback);
+router.get('/auth/google/initiate', googleAuthController.initiateAuth);
+router.get('/auth/google/health', googleAuthController.healthCheck);
 
 // Password management
 router.post('/forgot-password', validatePasswordResetRequest, forgotPassword);
