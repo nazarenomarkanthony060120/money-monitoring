@@ -71,15 +71,18 @@ export class GoogleOAuthService {
   }
 
   /**
-   * Generate Google OAuth URL with PKCE
-   */
-  generateAuthUrl(): { authUrl: string; codeVerifier: string } {
+ * Generate Google OAuth URL with PKCE
+ */
+  generateAuthUrl(mobileRedirectUri?: string): { authUrl: string; codeVerifier: string } {
     const { codeVerifier, codeChallenge } = this.generatePKCECodes();
     const state = randomBytes(16).toString('base64url');
 
+    // Use mobile redirect URI if provided, otherwise use web callback
+    const redirectUri = mobileRedirectUri || this.redirectUri;
+
     const params = new URLSearchParams({
       client_id: this.clientId,
-      redirect_uri: this.redirectUri,
+      redirect_uri: redirectUri,
       response_type: 'code',
       scope: 'openid email profile',
       access_type: 'offline',
@@ -95,6 +98,8 @@ export class GoogleOAuthService {
       authUrl: authUrl.substring(0, 100) + '...',
       codeVerifier: codeVerifier.substring(0, 20) + '...',
       state: state,
+      redirectUri: redirectUri,
+      isMobile: !!mobileRedirectUri,
     });
 
     return { authUrl, codeVerifier };
@@ -103,13 +108,17 @@ export class GoogleOAuthService {
   /**
    * Exchange authorization code for tokens using PKCE
    */
-  async exchangeCodeForTokens(code: string, codeVerifier: string): Promise<GoogleTokens> {
+  async exchangeCodeForTokens(code: string, codeVerifier: string, mobileRedirectUri?: string): Promise<GoogleTokens> {
     try {
+      // Use mobile redirect URI if provided, otherwise use web callback
+      const redirectUri = mobileRedirectUri || this.redirectUri;
+
       console.log('Exchanging code for tokens:', {
         code: code.substring(0, 20) + '...',
         codeVerifier: codeVerifier.substring(0, 20) + '...',
-        redirectUri: this.redirectUri,
+        redirectUri: redirectUri,
         clientId: this.clientId ? `${this.clientId.substring(0, 20)}...` : 'NOT SET',
+        isMobile: !!mobileRedirectUri,
       });
 
       const tokenResponse = await fetch('https://oauth2.googleapis.com/token', {
@@ -122,7 +131,7 @@ export class GoogleOAuthService {
           client_secret: this.clientSecret,
           code,
           grant_type: 'authorization_code',
-          redirect_uri: this.redirectUri,
+          redirect_uri: redirectUri,
           code_verifier: codeVerifier,
         }),
       });
@@ -204,12 +213,12 @@ export class GoogleOAuthService {
   /**
    * Complete OAuth flow: exchange code for tokens, verify ID token, create user session
    */
-  async authenticateUser(code: string, codeVerifier: string): Promise<AuthResult> {
+  async authenticateUser(code: string, codeVerifier: string, mobileRedirectUri?: string): Promise<AuthResult> {
     try {
       console.log('Starting Google authentication flow');
 
       // Step 1: Exchange code for tokens
-      const tokens = await this.exchangeCodeForTokens(code, codeVerifier);
+      const tokens = await this.exchangeCodeForTokens(code, codeVerifier, mobileRedirectUri);
 
       // Step 2: Verify ID token and get user info
       const userInfo = await this.verifyIdToken(tokens.id_token);

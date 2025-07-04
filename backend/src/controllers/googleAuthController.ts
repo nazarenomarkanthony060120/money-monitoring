@@ -9,16 +9,25 @@ export class GoogleAuthController {
    */
   async generateAuthUrl(req: Request, res: Response): Promise<void> {
     try {
-      const { authUrl, codeVerifier } = googleOAuthService.generateAuthUrl();
+      // Check if this is a mobile request (accepts redirectUri parameter)
+      const mobileRedirectUri = req.query.redirectUri as string;
+
+      const { authUrl, codeVerifier } = googleOAuthService.generateAuthUrl(mobileRedirectUri);
 
       res.json({
-        authUrl,
-        codeVerifier,
+        success: true,
+        data: {
+          authUrl,
+          codeVerifier,
+        },
       });
     } catch (error) {
       console.error('Generate auth URL error:', error);
       const apiError = error instanceof ApiError ? error : new ApiError(500, 'Failed to generate auth URL');
-      res.status(apiError.statusCode).json({ error: apiError.message });
+      res.status(apiError.statusCode).json({
+        success: false,
+        error: apiError.message
+      });
     }
   }
 
@@ -27,22 +36,28 @@ export class GoogleAuthController {
    */
   async exchangeCodeForTokens(req: Request, res: Response): Promise<void> {
     try {
-      const { code, codeVerifier } = req.body;
+      const { code, codeVerifier, redirectUri } = req.body;
 
       if (!code || !codeVerifier) {
         throw new ApiError(400, 'Authorization code and code verifier are required');
       }
 
-      const authResult = await googleOAuthService.authenticateUser(code, codeVerifier);
+      const authResult = await googleOAuthService.authenticateUser(code, codeVerifier, redirectUri);
 
       res.json({
-        token: authResult.token,
-        user: authResult.user,
+        success: true,
+        data: {
+          token: authResult.token,
+          user: authResult.user,
+        },
       });
     } catch (error) {
       console.error('Exchange code for tokens error:', error);
       const apiError = error instanceof ApiError ? error : new ApiError(500, 'Failed to exchange code for tokens');
-      res.status(apiError.statusCode).json({ error: apiError.message });
+      res.status(apiError.statusCode).json({
+        success: false,
+        error: apiError.message
+      });
     }
   }
 
