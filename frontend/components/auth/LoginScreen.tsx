@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react'
-import { View, Alert, StatusBar, Platform } from 'react-native'
+import { View, StatusBar, Platform } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import * as SystemUI from 'expo-system-ui'
 import { useAuth } from '../../hooks/useAuth'
@@ -11,7 +11,7 @@ import { LoginForm } from './LoginForm'
 import { LoginFooter } from './LoginFooter'
 
 export const LoginScreen: React.FC = () => {
-  const { login, isLoading, error, clearError, user } = useAuth()
+  const { user } = useAuth()
   const router = useRouter()
 
   useEffect(() => {
@@ -60,18 +60,6 @@ export const LoginScreen: React.FC = () => {
     }
   }, [user, router])
 
-  const handleLogin = async (provider: 'google' | 'facebook' | 'discord') => {
-    try {
-      await login(provider)
-    } catch (error) {
-      Alert.alert(
-        'Login Failed',
-        'There was an error during login. Please try again.',
-        [{ text: 'OK', onPress: clearError }],
-      )
-    }
-  }
-
   const handleTermsPress = () => {
     // Handle terms of service press
     console.log('Terms of Service pressed')
@@ -95,12 +83,7 @@ export const LoginScreen: React.FC = () => {
         <View className="flex-1 justify-center px-6">
           <LoginHeader />
           <FeaturesSection />
-          <LoginForm
-            onLogin={handleLogin}
-            isLoading={isLoading}
-            error={error || undefined}
-            onClearError={clearError}
-          />
+          <LoginForm />
           <LoginFooter
             onTermsPress={handleTermsPress}
             onPrivacyPress={handlePrivacyPress}

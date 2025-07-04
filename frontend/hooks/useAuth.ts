@@ -1,7 +1,5 @@
 import { useState } from 'react';
-import { useMutation } from '@tanstack/react-query';
-import { authService } from '../services/authService';
-import { User, LoginResponse } from '../types/auth';
+import { User } from '../types/auth';
 import { useRouter } from 'expo-router';
 import { frontendDiscordService } from '../services/discordService';
 
@@ -65,43 +63,12 @@ export const useAuth = () => {
     router.replace('/');
   };
 
-  const loginMutation = useMutation({
-    mutationFn: async (provider: 'google' | 'facebook' | 'discord') => {
-      setLoading(true);
-      clearError();
-
-      try {
-        const response = await authService.loginWithProvider(provider);
-        setAuthData(response.user, response.token);
-        return response;
-      } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : 'Authentication failed';
-        setError(errorMessage);
-        throw error;
-      }
-    },
-    onError: (error) => {
-      const errorMessage = error instanceof Error ? error.message : 'Authentication failed';
-      setError(errorMessage);
-    },
-  });
-
-  const handleLogin = async (provider: 'google' | 'facebook' | 'discord') => {
-    try {
-      await loginMutation.mutateAsync(provider);
-    } catch (error) {
-      // Error is already handled in the mutation
-      console.error('Login error:', error);
-    }
-  };
-
   return {
     user: authState.user,
     token: authState.token,
-    isLoading: authState.isLoading || loginMutation.isPending,
+    isLoading: authState.isLoading,
     error: authState.error,
     isAuthenticated: !!authState.user && !!authState.token,
-    login: handleLogin,
     loginWithTokenAndUser: login,
     logout,
     clearError,
