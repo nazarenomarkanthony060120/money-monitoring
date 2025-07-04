@@ -98,11 +98,36 @@ export class GoogleAuthController {
       console.log('Google OAuth callback successful:', {
         userId: authResult.user.id,
         userEmail: authResult.user.email,
+        isMobileRedirect: authResult.isMobileRedirect,
+        originalRedirectUri: authResult.redirectUri,
       });
 
-      // Redirect to frontend with token
-      const redirectUrl = `${env.FRONTEND_URL}/auth/success?token=${authResult.token}`;
-      res.redirect(redirectUrl);
+      // Check if this was a mobile redirect (deep link) or web redirect
+      if (authResult.isMobileRedirect && authResult.redirectUri) {
+        // For mobile redirects, redirect to the mobile app with token and user info
+        const userInfo = encodeURIComponent(JSON.stringify({
+          id: authResult.user.id,
+          name: authResult.user.name,
+          email: authResult.user.email,
+          picture: authResult.user.picture,
+          provider: authResult.user.provider,
+          isEmailVerified: authResult.user.isEmailVerified,
+        }));
+
+        const mobileRedirectUrl = `${authResult.redirectUri}?token=${authResult.token}&success=true&user=${userInfo}`;
+        console.log('Redirecting to mobile app:', {
+          redirectUri: authResult.redirectUri,
+          hasToken: !!authResult.token,
+          userId: authResult.user.id,
+          userEmail: authResult.user.email,
+        });
+        res.redirect(mobileRedirectUrl);
+      } else {
+        // For web redirects, redirect to frontend web URL
+        const redirectUrl = `${env.FRONTEND_URL}/auth/success?token=${authResult.token}`;
+        console.log('Redirecting to web frontend:', redirectUrl);
+        res.redirect(redirectUrl);
+      }
     } catch (error) {
       console.error('Google OAuth callback error:', error);
 
