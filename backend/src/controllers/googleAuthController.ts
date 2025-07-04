@@ -87,8 +87,13 @@ export class GoogleAuthController {
         return res.redirect(`${env.FRONTEND_URL}/auth/error?error=missing_code`);
       }
 
-      // Use legacy callback method (without PKCE for web redirects)
-      const authResult = await googleOAuthService.handleLegacyCallback(code);
+      if (!state || typeof state !== 'string') {
+        console.error('Missing or invalid state parameter');
+        return res.redirect(`${env.FRONTEND_URL}/auth/error?error=missing_state`);
+      }
+
+      // Use new web callback method with PKCE (retrieves stored code verifier)
+      const authResult = await googleOAuthService.handleWebCallback(code, state);
 
       console.log('Google OAuth callback successful:', {
         userId: authResult.user.id,
@@ -154,6 +159,26 @@ export class GoogleAuthController {
       },
     });
   }
+
+  /**
+ * Debug endpoint to check PKCE sessions
+ */
+  async debugPKCESessions(req: Request, res: Response): Promise<void> {
+    try {
+      const debugInfo = googleOAuthService.getPKCEStoreDebugInfo();
+
+      res.json({
+        status: 'ok',
+        pkceStoreSize: debugInfo.size,
+        activeSessions: debugInfo.sessions.length,
+        sessions: debugInfo.sessions,
+        timestamp: new Date().toISOString(),
+      });
+    } catch (error) {
+      console.error('Debug PKCE sessions error:', error);
+      res.status(500).json({ error: 'Failed to get PKCE sessions debug info' });
+    }
+  }
 }
 
 export const googleAuthController = new GoogleAuthController();
@@ -163,4 +188,5 @@ googleAuthController.generateAuthUrl = googleAuthController.generateAuthUrl.bind
 googleAuthController.exchangeCodeForTokens = googleAuthController.exchangeCodeForTokens.bind(googleAuthController);
 googleAuthController.handleCallback = googleAuthController.handleCallback.bind(googleAuthController);
 googleAuthController.initiateAuth = googleAuthController.initiateAuth.bind(googleAuthController);
-googleAuthController.healthCheck = googleAuthController.healthCheck.bind(googleAuthController); 
+googleAuthController.healthCheck = googleAuthController.healthCheck.bind(googleAuthController);
+googleAuthController.debugPKCESessions = googleAuthController.debugPKCESessions.bind(googleAuthController); 

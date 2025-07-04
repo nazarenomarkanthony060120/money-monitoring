@@ -37,11 +37,39 @@ interface AuthResult {
   };
 }
 
+interface PKCESession {
+  codeVerifier: string;
+  redirectUri: string;
+  timestamp: number;
+}
+
 export class GoogleOAuthService {
   private googleClient: OAuth2Client;
   private clientId: string;
   private clientSecret: string;
   private redirectUri: string;
+  private pkceStore: Map<string, PKCESession> = new Map();
+
+  /**
+   * Get PKCE store for debugging (read-only access)
+   */
+  getPKCEStoreDebugInfo(): { size: number; sessions: any[] } {
+    const sessions: any[] = [];
+    this.pkceStore.forEach((session, state) => {
+      sessions.push({
+        state: state.substring(0, 10) + '...',
+        hasCodeVerifier: !!session.codeVerifier,
+        redirectUri: session.redirectUri,
+        age: Date.now() - session.timestamp,
+        timestamp: new Date(session.timestamp).toISOString(),
+      });
+    });
+
+    return {
+      size: this.pkceStore.size,
+      sessions: sessions.slice(0, 10), // Max 10 sessions
+    };
+  }
 
   constructor() {
     this.clientId = env.GOOGLE_CLIENT_ID;
@@ -56,6 +84,58 @@ export class GoogleOAuthService {
       redirectUri: this.redirectUri,
       backendBaseUrl: env.BACKEND_BASE_URL,
     });
+
+    // Clean up expired PKCE sessions every 10 minutes
+    setInterval(() => this.cleanupExpiredSessions(), 10 * 60 * 1000);
+  }
+
+  /**
+   * Clean up expired PKCE sessions (older than 10 minutes)
+   */
+  private cleanupExpiredSessions(): void {
+    const now = Date.now();
+    const expiredStates: string[] = [];
+
+    this.pkceStore.forEach((session, state) => {
+      if (now - session.timestamp > 10 * 60 * 1000) { // 10 minutes
+        expiredStates.push(state);
+      }
+    });
+
+    expiredStates.forEach(state => {
+      this.pkceStore.delete(state);
+    });
+
+    if (expiredStates.length > 0) {
+      console.log(`Cleaned up ${expiredStates.length} expired PKCE sessions`);
+    }
+  }
+
+  /**
+   * Store PKCE session associated with state
+   */
+  private storePKCESession(state: string, codeVerifier: string, redirectUri: string): void {
+    this.pkceStore.set(state, {
+      codeVerifier,
+      redirectUri,
+      timestamp: Date.now(),
+    });
+    console.log(`Stored PKCE session for state: ${state.substring(0, 10)}...`);
+  }
+
+  /**
+   * Retrieve PKCE session by state
+   */
+  private retrievePKCESession(state: string): PKCESession | null {
+    const session = this.pkceStore.get(state);
+    if (session) {
+      // Remove session after retrieval to prevent replay attacks
+      this.pkceStore.delete(state);
+      console.log(`Retrieved PKCE session for state: ${state.substring(0, 10)}...`);
+      return session;
+    }
+    console.log(`No PKCE session found for state: ${state.substring(0, 10)}...`);
+    return null;
   }
 
   /**
@@ -79,6 +159,9 @@ export class GoogleOAuthService {
 
     // Use mobile redirect URI if provided, otherwise use web callback
     const redirectUri = mobileRedirectUri || this.redirectUri;
+
+    // Store PKCE session for later retrieval during callback
+    this.storePKCESession(state, codeVerifier, redirectUri);
 
     const params = new URLSearchParams({
       client_id: this.clientId,
@@ -252,9 +335,69 @@ export class GoogleOAuthService {
   }
 
   /**
-   * Legacy method for web callback (without PKCE)
+ * Handle web callback with PKCE (using stored code verifier)
+ */
+  async handleWebCallback(code: string, state: string): Promise<AuthResult> {
+    try {
+      console.log('Handling Google OAuth web callback with PKCE');
+
+      // Retrieve PKCE session using state parameter
+      const pkceSession = this.retrievePKCESession(state);
+
+      if (!pkceSession) {
+        throw new ApiError(400, 'Invalid or expired state parameter. PKCE session not found.');
+      }
+
+      console.log('Retrieved PKCE session:', {
+        hasCodeVerifier: !!pkceSession.codeVerifier,
+        redirectUri: pkceSession.redirectUri,
+        sessionAge: Date.now() - pkceSession.timestamp,
+      });
+
+      // Use the stored code verifier and redirect URI for token exchange
+      const tokens = await this.exchangeCodeForTokens(
+        code,
+        pkceSession.codeVerifier,
+        pkceSession.redirectUri
+      );
+
+      // Verify ID token and get user info
+      const userInfo = await this.verifyIdToken(tokens.id_token);
+
+      // Create user session
+      const authResult = await authService.loginWithGoogle({
+        idToken: tokens.id_token,
+        accessToken: tokens.access_token,
+        user: {
+          id: userInfo.sub,
+          email: userInfo.email,
+          name: userInfo.name,
+          photo: userInfo.picture,
+        }
+      });
+
+      console.log('Google OAuth web callback completed successfully:', {
+        userId: authResult.user.id,
+        userEmail: authResult.user.email,
+        userName: authResult.user.name,
+      });
+
+      return {
+        token: authResult.token,
+        user: authResult.user,
+      };
+    } catch (error) {
+      console.error('Google OAuth web callback error:', error);
+      throw error instanceof ApiError ? error : new ApiError(500, 'Google authentication failed');
+    }
+  }
+
+  /**
+   * Legacy method for web callback (without PKCE) - DEPRECATED
    */
   async handleLegacyCallback(code: string): Promise<AuthResult> {
+    console.warn('⚠️  Using legacy callback without PKCE - this should not happen in production');
+
     try {
       console.log('Handling legacy Google OAuth callback (without PKCE)');
 
