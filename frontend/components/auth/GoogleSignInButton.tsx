@@ -80,19 +80,65 @@ export const GoogleSignInButton: React.FC<GoogleSignInButtonProps> = ({
       )
 
       if (result.type === 'success' && result.url) {
-        // Step 3: Extract authorization code from callback URL
+        // Step 3: Parse callback URL for either code or direct token
         console.log('OAuth callback received:', result.url)
         const url = new URL(result.url)
-        const code = url.searchParams.get('code')
-        const state = url.searchParams.get('state')
+        
+        // Check for errors first
         const error = url.searchParams.get('error')
-
         if (error) {
           throw new Error(`OAuth error: ${error}`)
         }
 
+        // Check for direct token response (from backend redirect)
+        const token = url.searchParams.get('token')
+        const success = url.searchParams.get('success')
+        const userParam = url.searchParams.get('user')
+
+        if (token && success === 'true') {
+          console.log('Received direct token from backend:', token.substring(0, 20) + '...')
+          
+          // Parse user info
+          let user: any = {
+            id: 'unknown',
+            name: 'User',
+            email: 'user@example.com',
+            provider: 'google',
+            isEmailVerified: true,
+          }
+
+          if (userParam) {
+            try {
+              const parsedUser = JSON.parse(decodeURIComponent(userParam))
+              user = {
+                id: parsedUser.id || 'unknown',
+                name: parsedUser.name || 'User',
+                email: parsedUser.email || 'user@example.com',
+                picture: parsedUser.picture,
+                provider: parsedUser.provider || 'google',
+                isEmailVerified: parsedUser.isEmailVerified || true,
+              }
+              console.log('Parsed user from backend:', {
+                id: user.id,
+                name: user.name,
+                email: user.email,
+              })
+            } catch (error) {
+              console.warn('Failed to parse user info:', error)
+            }
+          }
+
+          // Success with direct token
+          onSuccess({ token, user })
+          return
+        }
+
+        // Fallback: Check for authorization code (original flow)
+        const code = url.searchParams.get('code')
+        const state = url.searchParams.get('state')
+
         if (!code) {
-          throw new Error('No authorization code received')
+          throw new Error('No authorization code or token received')
         }
 
         console.log('Extracted OAuth parameters:', {
