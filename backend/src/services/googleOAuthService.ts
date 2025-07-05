@@ -162,15 +162,17 @@ export class GoogleOAuthService {
     const { codeVerifier, codeChallenge } = this.generatePKCECodes();
     const state = randomBytes(16).toString('base64url');
 
-    // Use mobile redirect URI if provided, otherwise use web callback
-    const redirectUri = mobileRedirectUri || this.redirectUri;
+    // Always use backend server URL for Google OAuth redirect
+    // Mobile redirect URI is stored in PKCE session for later use
+    const oauthRedirectUri = this.redirectUri;
+    const finalRedirectUri = mobileRedirectUri || this.redirectUri;
 
-    // Store PKCE session for later retrieval during callback
-    this.storePKCESession(state, codeVerifier, redirectUri);
+    // Store PKCE session with the final redirect URI (mobile or web)
+    this.storePKCESession(state, codeVerifier, finalRedirectUri);
 
     const params = new URLSearchParams({
       client_id: this.clientId,
-      redirect_uri: redirectUri,
+      redirect_uri: oauthRedirectUri, // Always use backend server URL
       response_type: 'code',
       scope: 'openid email profile',
       access_type: 'offline',
@@ -186,7 +188,8 @@ export class GoogleOAuthService {
       authUrl: authUrl.substring(0, 100) + '...',
       codeVerifier: codeVerifier.substring(0, 20) + '...',
       state: state,
-      redirectUri: redirectUri,
+      oauthRedirectUri: oauthRedirectUri,
+      finalRedirectUri: finalRedirectUri,
       isMobile: !!mobileRedirectUri,
     });
 
@@ -198,13 +201,14 @@ export class GoogleOAuthService {
    */
   async exchangeCodeForTokens(code: string, codeVerifier: string, mobileRedirectUri?: string): Promise<GoogleTokens> {
     try {
-      // Use mobile redirect URI if provided, otherwise use web callback
-      const redirectUri = mobileRedirectUri || this.redirectUri;
+      // Always use backend server URL for token exchange (must match authorization request)
+      const tokenExchangeRedirectUri = this.redirectUri;
 
       console.log('Exchanging code for tokens:', {
         code: code.substring(0, 20) + '...',
         codeVerifier: codeVerifier.substring(0, 20) + '...',
-        redirectUri: redirectUri,
+        tokenExchangeRedirectUri: tokenExchangeRedirectUri,
+        mobileRedirectUri: mobileRedirectUri,
         clientId: this.clientId ? `${this.clientId.substring(0, 20)}...` : 'NOT SET',
         isMobile: !!mobileRedirectUri,
       });
@@ -219,7 +223,7 @@ export class GoogleOAuthService {
           client_secret: this.clientSecret,
           code,
           grant_type: 'authorization_code',
-          redirect_uri: redirectUri,
+          redirect_uri: tokenExchangeRedirectUri, // Must match authorization request
           code_verifier: codeVerifier,
         }),
       });
@@ -361,12 +365,19 @@ export class GoogleOAuthService {
 
       // Determine if this is a mobile redirect
       const isMobileRedirect = pkceSession.redirectUri.includes('://') && !pkceSession.redirectUri.startsWith('http');
+      
+      console.log('Mobile redirect detection:', {
+        redirectUri: pkceSession.redirectUri,
+        containsScheme: pkceSession.redirectUri.includes('://'),
+        isHttp: pkceSession.redirectUri.startsWith('http'),
+        isMobileRedirect: isMobileRedirect,
+      });
 
-      // Use the stored code verifier and redirect URI for token exchange
+      // Use the stored code verifier for token exchange
+      // Note: Don't pass mobile redirect URI to token exchange - it always uses backend server URL
       const tokens = await this.exchangeCodeForTokens(
         code,
-        pkceSession.codeVerifier,
-        pkceSession.redirectUri
+        pkceSession.codeVerifier
       );
 
       // Verify ID token and get user info
