@@ -4,10 +4,25 @@ import { GoogleSignInButton } from './GoogleSignInButton'
 import { useAuthStore } from '../../stores/authStore'
 import { useRouter } from 'expo-router'
 
-export const LoginForm: React.FC = () => {
-  const [error, setError] = useState<string | null>(null)
+interface LoginFormProps {
+  onLogin: (provider: 'google' | 'facebook' | 'discord') => Promise<void>
+  isLoading: boolean
+  error?: string
+  onClearError: () => void
+}
+
+export const LoginForm: React.FC<LoginFormProps> = ({
+  onLogin,
+  isLoading,
+  error: externalError,
+  onClearError,
+}) => {
+  const [internalError, setInternalError] = useState<string | null>(null)
   const { login } = useAuthStore()
   const router = useRouter()
+  
+  // Use external error if provided, otherwise use internal error
+  const error = externalError || internalError
 
   const handleGoogleSuccess = (result: any) => {
     try {
@@ -25,12 +40,12 @@ export const LoginForm: React.FC = () => {
       )
     } catch (error) {
       console.error('Login error:', error)
-      setError('Failed to complete sign in')
+      setInternalError('Failed to complete sign in')
     }
   }
 
   const handleGoogleError = (error: string) => {
-    setError(error)
+    setInternalError(error)
     console.error('Google sign in error:', error)
   }
 

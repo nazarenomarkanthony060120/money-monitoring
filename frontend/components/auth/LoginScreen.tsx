@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react'
-import { View, Alert, StatusBar, Platform } from 'react-native'
+import { View, Alert, StatusBar, Platform, ScrollView } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import * as SystemUI from 'expo-system-ui'
 import { useAuth } from '../../hooks/useAuth'
@@ -92,20 +92,27 @@ export const LoginScreen: React.FC = () => {
       />
 
       <SafeAreaView className="flex-1">
-        <View className="flex-1 justify-center px-6">
-          <LoginHeader />
-          <FeaturesSection />
-          <LoginForm
-            onLogin={handleLogin}
-            isLoading={isLoading}
-            error={error || undefined}
-            onClearError={clearError}
-          />
-          <LoginFooter
-            onTermsPress={handleTermsPress}
-            onPrivacyPress={handlePrivacyPress}
-          />
-        </View>
+        <ScrollView 
+          className="flex-1"
+          contentContainerStyle={{ flexGrow: 1 }}
+          showsVerticalScrollIndicator={false}
+          bounces={false}
+        >
+          <View className="flex-1 justify-center px-6 py-8">
+            <LoginHeader />
+            <FeaturesSection />
+            <LoginForm
+              onLogin={handleLogin}
+              isLoading={isLoading}
+              error={error || undefined}
+              onClearError={clearError}
+            />
+            <LoginFooter
+              onTermsPress={handleTermsPress}
+              onPrivacyPress={handlePrivacyPress}
+            />
+          </View>
+        </ScrollView>
       </SafeAreaView>
     </GradientBackground>
   )

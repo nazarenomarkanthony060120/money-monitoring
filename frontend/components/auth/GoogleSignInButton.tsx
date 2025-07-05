@@ -2,7 +2,6 @@ import React, { useState } from 'react'
 import {
   TouchableOpacity,
   Text,
-  StyleSheet,
   Alert,
   ActivityIndicator,
   View,
@@ -49,8 +48,18 @@ export const GoogleSignInButton: React.FC<GoogleSignInButtonProps> = ({
     setIsLoading(true)
 
     try {
+      // Generate mobile redirect URI
+      const mobileRedirectUri = AuthSession.makeRedirectUri({
+        scheme: process.env.EXPO_PUBLIC_SCHEME || 'moneymonitoring',
+        path: 'oauth/callback',
+      })
+
+      console.log('Mobile redirect URI:', mobileRedirectUri)
+
       // Step 1: Get OAuth URL with PKCE challenge from backend
-      const urlResponse = await fetch(`${BACKEND_URL}/api/auth/google/url`)
+      const urlResponse = await fetch(
+        `${BACKEND_URL}/api/auth/google/url?redirectUri=${encodeURIComponent(mobileRedirectUri)}`
+      )
 
       if (!urlResponse.ok) {
         throw new Error('Failed to get Google OAuth URL')
@@ -67,23 +76,33 @@ export const GoogleSignInButton: React.FC<GoogleSignInButtonProps> = ({
       // Step 2: Open OAuth URL in browser
       const result = await WebBrowser.openAuthSessionAsync(
         authUrl,
-        AuthSession.makeRedirectUri({
-          scheme: process.env.EXPO_PUBLIC_SCHEME || 'moneymonitoring',
-          path: 'oauth/callback',
-        }),
+        mobileRedirectUri
       )
 
       if (result.type === 'success' && result.url) {
         // Step 3: Extract authorization code from callback URL
+        console.log('OAuth callback received:', result.url)
         const url = new URL(result.url)
         const code = url.searchParams.get('code')
         const state = url.searchParams.get('state')
+        const error = url.searchParams.get('error')
+
+        if (error) {
+          throw new Error(`OAuth error: ${error}`)
+        }
 
         if (!code) {
           throw new Error('No authorization code received')
         }
 
+        console.log('Extracted OAuth parameters:', {
+          hasCode: !!code,
+          hasState: !!state,
+          redirectUri: mobileRedirectUri,
+        })
+
         // Step 4: Exchange code for tokens using PKCE verifier
+        console.log('Exchanging code for tokens...')
         const tokenResponse = await fetch(
           `${BACKEND_URL}/api/auth/google/token`,
           {
@@ -95,16 +114,25 @@ export const GoogleSignInButton: React.FC<GoogleSignInButtonProps> = ({
               code,
               codeVerifier,
               state,
+              redirectUri: mobileRedirectUri,
             }),
           },
         )
 
+        console.log('Token exchange response status:', tokenResponse.status)
+
         if (!tokenResponse.ok) {
           const errorData = await tokenResponse.json()
+          console.error('Token exchange error:', errorData)
           throw new Error(errorData.message || 'Token exchange failed')
         }
 
         const tokenData = await tokenResponse.json()
+        console.log('Token exchange successful:', {
+          hasToken: !!tokenData.data?.token,
+          hasUser: !!tokenData.data?.user,
+          success: tokenData.success,
+        })
 
         if (tokenData.success && tokenData.data) {
           onSuccess(tokenData.data)
@@ -132,67 +160,29 @@ export const GoogleSignInButton: React.FC<GoogleSignInButtonProps> = ({
 
   return (
     <TouchableOpacity
-      style={[styles.button, disabled && styles.buttonDisabled, style]}
+      className={`py-4 px-6 rounded-xl items-center justify-center shadow-lg mb-4 ${
+        disabled || isLoading 
+          ? 'bg-gray-300 shadow-none' 
+          : 'bg-blue-500 shadow-md'
+      }`}
       onPress={handleGoogleSignIn}
       disabled={disabled || isLoading}
+      style={style}
     >
-      <View style={styles.buttonContent}>
+      <View className="flex-row items-center justify-center">
         {isLoading ? (
-          <ActivityIndicator size="small" color="#fff" style={styles.loader} />
+          <ActivityIndicator size="small" color="#fff" className="mr-2" />
         ) : (
           <>
-            <Text style={styles.googleIcon}>G</Text>
-            <Text style={styles.buttonText}>Continue with Google</Text>
+            <View className="w-6 h-6 bg-white rounded-full items-center justify-center mr-3">
+              <Text className="text-blue-500 text-xl font-bold">G</Text>
+            </View>
+            <Text className="text-white text-base font-semibold">
+              Continue with Google
+            </Text>
           </>
         )}
       </View>
     </TouchableOpacity>
   )
 }
-
-const styles = StyleSheet.create({
-  button: {
-    backgroundColor: '#4285F4',
-    paddingVertical: 16,
-    paddingHorizontal: 24,
-    borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-    marginBottom: 16,
-  },
-  buttonDisabled: {
-    backgroundColor: '#cccccc',
-    shadowOpacity: 0,
-    elevation: 0,
-  },
-  buttonContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  googleIcon: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    backgroundColor: '#fff',
-    color: '#4285F4',
-    width: 24,
-    height: 24,
-    textAlign: 'center',
-    borderRadius: 12,
-    marginRight: 12,
-    lineHeight: 24,
-  },
-  buttonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  loader: {
-    marginRight: 8,
-  },
-})
