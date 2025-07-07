@@ -33,6 +33,13 @@ export default function RootLayout() {
             }}
           />
           <Stack.Screen name="(tabs)" />
+          <Stack.Screen
+            name="add-transaction"
+            options={{
+              presentation: 'modal',
+              statusBarStyle: 'light',
+            }}
+          />
         </Stack>
         <StatusBar style="auto" />
       </QueryClientProvider>
