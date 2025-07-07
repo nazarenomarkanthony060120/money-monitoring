@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { use, useMemo } from 'react'
 import {
   BalanceData,
   StatData,
@@ -6,8 +6,11 @@ import {
   Transaction,
   DashboardData,
 } from '../types/dashboard'
+import { useRouter } from 'expo-router'
 
 export const useDashboard = (): DashboardData => {
+  const router = useRouter()
+
   // In a real app, this would fetch data from your API or state management
   const dashboardData = useMemo<DashboardData>(() => {
     const balance: BalanceData = {
@@ -48,6 +51,7 @@ export const useDashboard = (): DashboardData => {
         iconBackgroundColor: '#dbeafe', // blue-50
         onPress: () => {
           console.log('Navigate to add transaction')
+          router.push('/add-transaction')
         },
       },
       {
