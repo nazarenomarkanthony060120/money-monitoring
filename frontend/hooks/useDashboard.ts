@@ -1,4 +1,4 @@
-import { use, useMemo } from 'react'
+import { useMemo } from 'react'
 import {
   BalanceData,
   StatData,
@@ -8,10 +8,12 @@ import {
 } from '../types/dashboard'
 import { useRouter } from 'expo-router'
 
-export const useDashboard = (): DashboardData => {
-  const router = useRouter()
+interface UseDashboardHandlers {
+  handleAddTransaction: () => void 
+  handleViewAnalytics: () => void 
+}
 
-  // In a real app, this would fetch data from your API or state management
+export const useDashboard = ({handleAddTransaction, handleViewAnalytics}: UseDashboardHandlers): DashboardData => {
   const dashboardData = useMemo<DashboardData>(() => {
     const balance: BalanceData = {
       balance: '$2,450.00',
@@ -49,19 +51,14 @@ export const useDashboard = (): DashboardData => {
         subtitle: 'Record income or expense',
         icon: '💰',
         iconBackgroundColor: '#dbeafe', // blue-50
-        onPress: () => {
-          console.log('Navigate to add transaction')
-          router.push('/add-transaction')
-        },
+        onPress: handleAddTransaction,
       },
       {
         title: 'View Analytics',
         subtitle: 'See spending patterns',
         icon: '📊',
         iconBackgroundColor: '#dcfce7', // green-50
-        onPress: () => {
-          console.log('Navigate to analytics')
-        },
+        onPress: handleViewAnalytics,
       },
       {
         title: 'Set Budget',
@@ -164,13 +161,14 @@ export const useDashboard = (): DashboardData => {
       quickActions,
       recentTransactions,
     }
-  }, [])
+  }, [handleAddTransaction, handleViewAnalytics])
 
   return dashboardData
 }
 
 // Navigation handlers hook
 export const useDashboardNavigation = () => {
+  const router = useRouter()
   const handleViewAllTransactions = () => {
     console.log('Navigate to all transactions')
     // TODO: Navigate to transactions screen
@@ -182,8 +180,8 @@ export const useDashboardNavigation = () => {
   }
 
   const handleAddTransaction = () => {
-    console.log('Navigate to add transaction')
-    // TODO: Navigate to add transaction screen
+    console.log('Navigate to add transactions')
+    router.push('/add-transaction')
   }
 
   const handleViewAnalytics = () => {

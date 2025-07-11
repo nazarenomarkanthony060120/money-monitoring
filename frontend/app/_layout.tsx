@@ -18,31 +18,29 @@ const queryClient = new QueryClient({
 
 export default function RootLayout() {
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
-      <QueryClientProvider client={queryClient}>
-        <Stack
-          screenOptions={{
-            headerShown: false,
+    <QueryClientProvider client={queryClient}>
+      <Stack
+        screenOptions={{
+          headerShown: false,
+        }}
+      >
+        <Stack.Screen
+          name="index"
+          options={{
+            statusBarHidden: true,
+            statusBarStyle: 'light',
           }}
-        >
-          <Stack.Screen
-            name="index"
-            options={{
-              statusBarHidden: true,
-              statusBarStyle: 'light',
-            }}
-          />
-          <Stack.Screen name="(tabs)" />
-          <Stack.Screen
-            name="add-transaction"
-            options={{
-              presentation: 'modal',
-              statusBarStyle: 'light',
-            }}
-          />
-        </Stack>
-        <StatusBar style="auto" />
-      </QueryClientProvider>
-    </GestureHandlerRootView>
+        />
+        <Stack.Screen name="(tabs)" />
+        <Stack.Screen
+          name="add-transaction"
+          options={{
+            presentation: 'modal',
+            statusBarStyle: 'light',
+          }}
+        />
+      </Stack>
+      <StatusBar style="auto" />
+    </QueryClientProvider>
   )
 }

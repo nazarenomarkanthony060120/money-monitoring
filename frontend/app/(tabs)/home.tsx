@@ -13,9 +13,17 @@ import {
 
 export default function HomeScreen() {
   const { user, logout } = useAuth()
-  const { balance, stats, quickActions, recentTransactions } = useDashboard()
-  const { handleViewAllTransactions, handleTransactionPress } =
-    useDashboardNavigation()
+  const {
+    handleAddTransaction,
+    handleViewAnalytics,
+    handleViewAllTransactions,
+    handleTransactionPress,
+  } = useDashboardNavigation()
+
+  const { balance, stats, quickActions, recentTransactions } = useDashboard({
+    handleAddTransaction,
+    handleViewAnalytics,
+  })
 
   const [refreshing, setRefreshing] = React.useState(false)
 

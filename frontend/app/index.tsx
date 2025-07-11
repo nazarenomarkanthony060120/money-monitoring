@@ -3,6 +3,7 @@ import React, { useEffect } from 'react'
 import { useRouter } from 'expo-router'
 import { LoginScreen } from '../components/auth/LoginScreen'
 import { useAuth } from '../hooks/useAuth'
+import HomeScreen from './(tabs)/home'
 
 export default function AuthScreen() {
   const router = useRouter()
@@ -54,5 +55,5 @@ export default function AuthScreen() {
     }
   }, [isAuthenticated, router])
 
-  return <LoginScreen />
+  return <HomeScreen />
 }
