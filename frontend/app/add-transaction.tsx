@@ -135,7 +135,10 @@ export default function AddTransactionScreen() {
               {/* Transaction Type Selector */}
               <TypeSelector
                 value={formData.type}
-                onValueChange={(value) => updateFormData('type', value)}
+                onValueChange={(value) => {
+                  console.log('Transaction type changed to:', value)
+                  updateFormData('type', value)
+                }}
                 error={errors.type}
               />
 
